@@ -151,8 +151,8 @@ const SalesOrdersTable = () => {
   // Sorting orders by creation date (latest first) and status
   const sortedOrders = orders.sort((a, b) => {
     // Sort by creation date (latest first)
-    // const dateComparison = new Date(b.createdAt) - new Date(a.createdAt);
-    // if (dateComparison !== 0) return dateComparison;
+    const dateComparison = new Date(b.createdAt) - new Date(a.createdAt);
+    if (dateComparison !== 0) return dateComparison;
 
     // Sort by status in this order: Pending, Reject, Accept
     const statusOrder = ["Pending", "Reject", "Accept"];
