@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
-import Navbar from './Navbar';
+import Sidebar from '../../Layout/Sidebar';
+import Navbar from '../../Layout/Navbar';
 import SalesOrdersTable from './SalesOrdersTable';
 import Pagination from './Pagination';
 
@@ -21,6 +21,7 @@ const SalesOrdersPage = () => {
       <div className={`flex-1 p-4 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         {/* Pass the toggleSidebar function to the Navbar */}
         <Navbar toggleSidebar={toggleSidebar} />
+        <br />
         <div>
           <SalesOrdersTable />
           <Pagination />

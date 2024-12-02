@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import Sidebar from '../Layout/ClientSidebar';
-import Navbar from '../Layout/Navbar';
-import OrdersTable from './OrdersTable';
-import Pagination from './Pagination';
+import Sidebar from '../../Layout/Sidebar';
+import Navbar from '../../Layout/Navbar';
 
-const OrdersPage = () => {
+import CategoriesTable from './CategoriesTable';
+import CategoryForm from './CategoryForm';
+
+
+const CategoriesPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Function to toggle sidebar visibility
@@ -21,13 +23,15 @@ const OrdersPage = () => {
       <div className={`flex-1 p-4 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         {/* Pass the toggleSidebar function to the Navbar */}
         <Navbar toggleSidebar={toggleSidebar} />
+        <br />
         <div>
-          <OrdersTable />
-          <Pagination />
+          {/* <CategoryForm /> */}
+          <CategoriesTable />
+          
         </div>
       </div>
     </div>
   );
 };
 
-export default OrdersPage;
+export default CategoriesPage;

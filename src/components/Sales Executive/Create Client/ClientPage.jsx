@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import Sidebar from '../Layout/ClientSidebar';
-import Navbar from '../Layout/Navbar';
-import OrdersTable from './OrdersTable';
-import Pagination from './Pagination';
+import Sidebar from '../../Layout/Sidebar';
+import Navbar from '../../Layout/Navbar';
+import ClientsTable from './ClientsTable';
 
-const OrdersPage = () => {
+
+const ClientPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Function to toggle sidebar visibility
@@ -22,12 +22,12 @@ const OrdersPage = () => {
         {/* Pass the toggleSidebar function to the Navbar */}
         <Navbar toggleSidebar={toggleSidebar} />
         <div>
-          <OrdersTable />
-          <Pagination />
+          <ClientsTable />
+          
         </div>
       </div>
     </div>
   );
 };
 
-export default OrdersPage;
+export default ClientPage;

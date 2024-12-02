@@ -30,10 +30,11 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
   // Function to handle form submission
   const handleSubmit = async () => {
     try {
+      const token = localStorage.getItem('token')
       const response = await fetch(`http://localhost:5000/api/orderItem/price/${order._id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NGE5NmUxYWM2OWVlOGM1NzVmMDQzMCIsInJvbGUiOiJzYWxlcyBleGVjdXRpdmUiLCJpYXQiOjE3MzMwMzc1MjAsImV4cCI6MTczMzEyMzkyMH0.EKMWiQkJEnwIbnzjneb-VBUqV1oxtYSMz1l8i9xsqxQ`,  // Update token if necessary
+          'Authorization': `Bearer ${token}`,  // Update token if necessary
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 

@@ -13,8 +13,8 @@ const OrdersTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null); // Order data to be edited
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NGFiYjk3OGU0M2Y1ZjhkNzRkYWQzYSIsInJvbGUiOiJjbGllbnQiLCJpYXQiOjE3MzI5ODUxNDgsImV4cCI6MTczMzA3MTU0OH0.SrYiybkcBV61dHR4abahfeVGOTzQt3s7RbqA_3FyIQQ"; // Replace with your actual token
+  const token = localStorage.getItem('token')
+
 
   useEffect(() => {
     const fetchOrders = async () => {

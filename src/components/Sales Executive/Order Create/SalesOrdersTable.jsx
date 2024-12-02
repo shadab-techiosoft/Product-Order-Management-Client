@@ -14,8 +14,7 @@ const SalesOrdersTable = () => {
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null); // Order data to be edited
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NGE5NmUxYWM2OWVlOGM1NzVmMDQzMCIsInJvbGUiOiJzYWxlcyBleGVjdXRpdmUiLCJpYXQiOjE3MzMwMzc1MjAsImV4cCI6MTczMzEyMzkyMH0.EKMWiQkJEnwIbnzjneb-VBUqV1oxtYSMz1l8i9xsqxQ"; // Replace with your actual token
+  const token = localStorage.getItem('token')
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -151,8 +150,8 @@ const SalesOrdersTable = () => {
   // Sorting orders by creation date (latest first) and status
   const sortedOrders = orders.sort((a, b) => {
     // Sort by creation date (latest first)
-    const dateComparison = new Date(b.createdAt) - new Date(a.createdAt);
-    if (dateComparison !== 0) return dateComparison;
+    // const dateComparison = new Date(b.createdAt) - new Date(a.createdAt);
+    // if (dateComparison !== 0) return dateComparison;
 
     // Sort by status in this order: Pending, Reject, Accept
     const statusOrder = ["Pending", "Reject", "Accept"];
