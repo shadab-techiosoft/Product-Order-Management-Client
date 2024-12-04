@@ -82,23 +82,23 @@ const MobileOrderCard = ({
               >
                 <div className="flex justify-between text-sm text-gray-700">
                   <div className="font-semibold">Item</div>
-                  <div>{item.itemName}</div>
+                  <div>{item.itemName || "Unknown"}</div>
                 </div>
                 <div className="flex justify-between text-sm text-gray-700">
                   <div className="font-semibold">Category</div>
-                  <div>{item.categoryName}</div>
+                  <div>{item.categoryName || "Unknown"}</div>
                 </div>
                 <div className="flex justify-between text-sm text-gray-700">
                   <div className="font-semibold">Quantity</div>
-                  <div>{item.qty}</div>
+                  <div>{item.qty || "Unknown"}</div>
                 </div>
                 <div className="flex justify-between text-sm text-gray-700">
                   <div className="font-semibold">Price</div>
-                  <div>{`${item.price}`}</div>
+                  <div>{`${item.price || "Unknown"}`}</div>
                 </div>
                 <div className="flex justify-between text-sm text-gray-700">
                   <div className="font-semibold">Total Amount</div>
-                  <div>{`${item.totalAmount}`}</div>
+                  <div>{`${item.totalAmount || "Unknown"}`}</div>
                 </div>
               </div>
             ))

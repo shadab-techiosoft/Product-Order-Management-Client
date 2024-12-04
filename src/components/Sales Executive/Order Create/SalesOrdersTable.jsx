@@ -5,6 +5,8 @@ import "react-toastify/dist/ReactToastify.css"; // Import toast CSS
 import { FaEdit, FaTrash } from "react-icons/fa";
 import EditOrderModal from "./EditOrderModal";
 import ForClientOrderModal from "./ForClientOrderModal";
+import Pagination from "./Pagination";
+import SearchBar from "./SearchBar"; 
 const SalesOrdersTable = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,10 @@ const SalesOrdersTable = () => {
   const [orderToEdit, setOrderToEdit] = useState(null); // Order data to be edited
   const token = localStorage.getItem('token');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [searchQuery, setSearchQuery] = useState("");
+// Pagination state
+const [currentPage, setCurrentPage] = useState(1);
+const ordersPerPage = 30; 
   const openModal = () => {
     setIsModalOpen(true);
   };
@@ -155,10 +160,33 @@ const SalesOrdersTable = () => {
   };
 
   // Filter orders based on the selected tab
-  const filteredOrders = orders.filter((order) => {
+  // const filteredOrders = orders.filter((order) => {
+  //   if (selectedTab === "all") return true;
+  //   return order.status.toLowerCase() === selectedTab;
+  // });
+
+
+  const filteredByTab = orders.filter((order) => {
     if (selectedTab === "all") return true;
-    return order.status.toLowerCase() === selectedTab;
+    return order.status.toLowerCase() === selectedTab.toLowerCase();
   });
+
+  // Filter orders by search query
+  const filteredOrders = filteredByTab.filter((order) => {
+    const queryLower = searchQuery.toLowerCase();
+    return (
+      order._id.toLowerCase().includes(queryLower) ||
+      order.status.toLowerCase().includes(queryLower) ||
+      order.items.some(
+        (item) =>
+          item.categoryName.toLowerCase().includes(queryLower) ||
+          item.itemName.toLowerCase().includes(queryLower)
+      )
+    );
+  });
+
+
+ 
 
   // Sorting orders by status: Pending, Reject, Accept
   const sortedOrders = filteredOrders.sort((a, b) => {
@@ -177,6 +205,14 @@ const SalesOrdersTable = () => {
     accept: orders.filter(order => order.status.toLowerCase() === 'accept').length,
     reject: orders.filter(order => order.status.toLowerCase() === 'reject').length
   };
+
+// Pagination Logic
+const indexOfLastOrder = currentPage * ordersPerPage;
+const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+const currentOrders = sortedOrders.slice(indexOfFirstOrder, indexOfLastOrder); // Use sorted orders for pagination
+
+// Calculate total pages
+const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -199,38 +235,46 @@ const SalesOrdersTable = () => {
           Create Order
         </button>
         <ForClientOrderModal isOpen={isModalOpen} closeModal={closeModal} />
+        
       </div>
+      
       {/* Tab navigation */}
-      <div className="flex space-x-4 mb-4">
-        <button
-          className={`py-2 px-4 rounded ${selectedTab === "all" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-          onClick={() => setSelectedTab("all")}
-        >
-          All
-          <span className="ml-2 text-xs bg-blue-200 text-blue-800 rounded-full px-2">{orderCounts.all}</span>
-        </button>
-        <button
-          className={`py-2 px-4 rounded ${selectedTab === "pending" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-          onClick={() => setSelectedTab("pending")}
-        >
-          Pending
-          <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 rounded-full px-2">{orderCounts.pending}</span>
-        </button>
-        <button
-          className={`py-2 px-4 rounded ${selectedTab === "accept" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-          onClick={() => setSelectedTab("accept")}
-        >
-          Completed
-          <span className="ml-2 text-xs bg-green-200 text-green-800 rounded-full px-2">{orderCounts.accept}</span>
-        </button>
-        <button
-          className={`py-2 px-4 rounded ${selectedTab === "reject" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-          onClick={() => setSelectedTab("reject")}
-        >
-          Reject
-          <span className="ml-2 text-xs bg-red-200 text-red-800 rounded-full px-2">{orderCounts.reject}</span>
-        </button>
-      </div>
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-4"> {/* Flex column on small screens, row on larger screens */}
+  <div className="flex space-x-4 mb-4 sm:mb-0"> {/* Margin at bottom for mobile, removed on larger screens */}
+    <button
+      className={`py-2 px-4 rounded ${selectedTab === "all" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+      onClick={() => setSelectedTab("all")}
+    >
+      All
+      <span className="ml-2 text-xs bg-blue-200 text-blue-800 rounded-full px-2">{orderCounts.all}</span>
+    </button>
+    <button
+      className={`py-2 px-4 rounded ${selectedTab === "pending" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+      onClick={() => setSelectedTab("pending")}
+    >
+      Pending
+      <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 rounded-full px-2">{orderCounts.pending}</span>
+    </button>
+    <button
+      className={`py-2 px-4 rounded ${selectedTab === "accept" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+      onClick={() => setSelectedTab("accept")}
+    >
+      Completed
+      <span className="ml-2 text-xs bg-green-200 text-green-800 rounded-full px-2">{orderCounts.accept}</span>
+    </button>
+    <button
+      className={`py-2 px-4 rounded ${selectedTab === "reject" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+      onClick={() => setSelectedTab("reject")}
+    >
+      Reject
+      <span className="ml-2 text-xs bg-red-200 text-red-800 rounded-full px-2">{orderCounts.reject}</span>
+    </button>
+  </div>
+  
+  {/* Search bar placed on the right side on larger screens */}
+  <SearchBar onSearch={(query) => setSearchQuery(query)} />
+</div>
+
 
       <div className="overflow-x-auto">
         <table className="table-auto w-full border-collapse hidden sm:table">
@@ -247,7 +291,7 @@ const SalesOrdersTable = () => {
             </tr>
           </thead>
           <tbody>
-            {sortedOrders.map((order, orderIndex) => (
+            {currentOrders.map((order, orderIndex) => (
               <React.Fragment key={order._id}>
                 <tr
                   className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"}`}
@@ -346,9 +390,9 @@ const SalesOrdersTable = () => {
             ))}
           </tbody>
         </table>
-
+        
         <div className="block sm:hidden">
-          {sortedOrders.map((order) => (
+          {currentOrders.map((order) => (
             <MobileOrderCard
               key={order._id}
               order={order}
@@ -360,6 +404,11 @@ const SalesOrdersTable = () => {
           ))}
         </div>
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
 
       {isEditModalOpen && (
         <EditOrderModal

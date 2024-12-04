@@ -24,7 +24,7 @@ const SalesOrdersPage = () => {
         <br />
         <div>
           <SalesOrdersTable />
-          <Pagination />
+          {/* <Pagination /> */}
         </div>
       </div>
     </div>

@@ -125,10 +125,16 @@ const OrdersTable = () => {
   };
 
    // Filter orders based on the selected tab
-   const filteredOrders = orders.filter((order) => {
+  //  const filteredOrders = orders.filter((order) => {
+  //   if (selectedTab === "all") return true;
+  //   return order.status.toLowerCase() === selectedTab;
+  // });
+
+  const filteredOrders = orders.filter((order) => {
     if (selectedTab === "all") return true;
-    return order.status.toLowerCase() === selectedTab;
+    return order.status && typeof order.status === "string" && order.status.toLowerCase() === selectedTab;
   });
+  
 
   // Sorting orders by status: Pending, Reject, Accept, and by latest created
 const sortedOrders = filteredOrders.sort((a, b) => {
@@ -178,12 +184,20 @@ const handleUpdateStatus = async (orderId, newStatus) => {
 
 
 
+// const orderCounts = {
+//   all: orders.length,
+//   pending: orders.filter(order => order.status.toLowerCase() === 'pending').length,
+//   accept: orders.filter(order => order.status.toLowerCase() === 'accept').length,
+//   reject: orders.filter(order => order.status.toLowerCase() === 'reject').length
+// };
+
 const orderCounts = {
   all: orders.length,
-  pending: orders.filter(order => order.status.toLowerCase() === 'pending').length,
-  accept: orders.filter(order => order.status.toLowerCase() === 'accept').length,
-  reject: orders.filter(order => order.status.toLowerCase() === 'reject').length
+  pending: orders.filter(order => order.status && order.status.toLowerCase() === 'pending').length,
+  accept: orders.filter(order => order.status && order.status.toLowerCase() === 'accept').length,
+  reject: orders.filter(order => order.status && order.status.toLowerCase() === 'reject').length
 };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -346,22 +360,21 @@ const orderCounts = {
 
                 {/* Expanded item rows */}
                 {expandedItems[order._id] &&
-                  order.items.map((item) => (
-                    <tr
-                      key={item._id}
-                      className={`border-b ${
-                        orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
-                      }`}
-                    >
-                      <td className="p-4"></td>
-                      <td className="p-4">{item.itemName}</td>
-                      <td className="p-4">{item.categoryName}</td>
-                      <td className="p-4">{item.qty}</td>
-                      <td className="p-4">{`${item.price}`}</td>
-                      <td className="p-4">{`${item.totalAmount}`}</td>
-                      <td className="p-4"></td>
-                    </tr>
-                  ))}
+  order.items.map((item, orderIndex) => (
+    <tr
+      key={item._id}
+      className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"}`}
+    >
+      <td className="p-4"></td>
+      <td className="p-4">{item.itemName || "Unknown"}</td> {/* Display "Unknown" if itemName is empty */}
+      <td className="p-4">{item.categoryName || "Unknown"}</td> {/* Display "Unknown" if categoryName is empty */}
+      <td className="p-4">{item.qty || "Unknown"}</td> {/* Display "Unknown" if qty is empty */}
+      <td className="p-4">{item.price ? `${item.price}` : "Unknown"}</td> {/* Display "Unknown" if price is empty */}
+      <td className="p-4">{item.totalAmount ? `${item.totalAmount}` : "Unknown"}</td> {/* Display "Unknown" if totalAmount is empty */}
+      <td className="p-4"></td>
+    </tr>
+  ))}
+
               </React.Fragment>
             ))}
           </tbody>

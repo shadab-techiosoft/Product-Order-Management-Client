@@ -1,7 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import { API_BASE_URL } from '../../config';
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify"; // Import toast
+import "react-toastify/dist/ReactToastify.css";
 const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
   const [items, setItems] = useState([{ categoryName: '', itemName: '', qty: 1 }]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryItems, setSelectedCategoryItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const token = localStorage.getItem("token");
+  // Fetch client and category data when the component mounts
+  useEffect(() => {
+    
+    const fetchData = async () => {
+      try {
+       
+        const categoryResponse = await axios.get("http://localhost:5000/api/categories/all-categories", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCategories(categoryResponse.data.categories); // Set categories data in state
+      } catch (error) {
+        console.error("Error fetching data:", error.message);
+      }
+    };
+
+    fetchData();
+  }, [token]);
 
   const handleAddItem = () => {
     const lastItem = items[items.length - 1];
@@ -20,7 +44,7 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
 
   const handleSubmit = async () => {
     const token = localStorage.getItem("token") 
-
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/orderItem/create`, {
         method: 'POST',
@@ -38,12 +62,28 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
       const newOrder = await response.json(); // Assume API returns the created order
       onOrderCreated(newOrder);
 
-      alert('Order created successfully!');
+      toast.success("Order created successfully!");
       closeModal();
     } catch (error) {
-      alert('Error: ' + error.message);
+      toast.error("Error creating order. Please try again.");
+    }finally {
+      setLoading(false); // Set loading to false after the request completes
     }
   };
+
+    // Update items based on selected category
+    const handleCategoryChange = (index, event) => {
+      const selectedCategory = event.target.value;
+      const category = categories.find(cat => cat.categoryName === selectedCategory);
+      const itemsForCategory = category ? category.items : [];
+      setSelectedCategoryItems(itemsForCategory);
+  
+      // Reset itemName if the category changes
+      const updatedItems = [...items];
+      updatedItems[index].categoryName = selectedCategory;
+      updatedItems[index].itemName = ""; // Reset itemName when category changes
+      setItems(updatedItems);
+    };
 
   return (
     <div className="fixed z-50 inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
@@ -52,20 +92,33 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
 
         {items.map((item, index) => (
           <div key={index} className="flex gap-4 mb-4">
-            <input
-              type="text"
-              placeholder="Category Name"
-              value={item.categoryName}
-              onChange={(e) => handleInputChange(index, 'categoryName', e.target.value)}
-              className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="Item Name"
-              value={item.itemName}
-              onChange={(e) => handleInputChange(index, 'itemName', e.target.value)}
-              className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-            />
+           <select
+                      name="categoryName"
+                      value={item.categoryName}
+                      onChange={(e) => handleCategoryChange(index, e)}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((category) => (
+                        <option key={category.categoryName} value={category.categoryName}>
+                          {category.categoryName}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="itemName"
+                      value={item.itemName}
+                      onChange={(e) => handleInputChange(index, 'itemName', e.target.value)}
+
+                      className="w-full p-2 border border-gray-300 rounded"
+                    >
+                      <option value="">Select Item</option>
+                      {selectedCategoryItems.map((itemOption) => (
+                        <option key={itemOption.itemCode} value={itemOption.itemName}>
+                          {itemOption.itemName}
+                        </option>
+                      ))}
+                    </select>
             <input
               type="number"
               placeholder="Quantity"
@@ -84,7 +137,7 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
           </div>
         ))}
 
-        <div className="flex justify-between mt-4">
+        <div className="flex justify-end gap-4 mt-4">
           <button
             onClick={closeModal}
             className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition duration-300"
@@ -94,8 +147,13 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
           <button
             onClick={handleSubmit}
             className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition duration-300"
+            disabled={loading}
           >
-            Create Order
+            {loading ? (
+                  <div className="w-5 h-5 border-4 border-t-4 border-white border-solid rounded-full animate-spin"></div>
+                ) : (
+                  "Create Order"
+                )}
           </button>
         </div>
       </div>

@@ -8,6 +8,8 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
   const [items, setItems] = useState([
     { categoryName: "", itemName: "", qty: 1, price: 0 },
   ]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryItems, setSelectedCategoryItems] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const {
@@ -27,22 +29,27 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
   // Watch GST value from the form
   const gst = watch("gst", 0); // Default to 0 if not provided
 
-  // Fetch client data when the component mounts
-  useEffect(() => {
-    const fetchClients = async () => {
+   // Fetch client and category data when the component mounts
+   useEffect(() => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/clients", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        // Fetch clients
+        const clientResponse = await axios.get("http://localhost:5000/api/clients", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setClients(response.data); // Set the clients data in state
+        setClients(clientResponse.data); // Set the clients data in state
+
+        // Fetch categories and items
+        const categoryResponse = await axios.get("http://localhost:5000/api/categories/all-categories", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCategories(categoryResponse.data.categories); // Set categories data in state
       } catch (error) {
-        console.error("Error fetching clients:", error.message);
+        console.error("Error fetching data:", error.message);
       }
     };
 
-    fetchClients();
+    fetchData();
   }, [token]);
 
   // Handle form submission
@@ -95,6 +102,20 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
   const handleItemChange = (index, event) => {
     const updatedItems = [...items];
     updatedItems[index][event.target.name] = event.target.value;
+    setItems(updatedItems);
+  };
+
+  // Update items based on selected category
+  const handleCategoryChange = (index, event) => {
+    const selectedCategory = event.target.value;
+    const category = categories.find(cat => cat.categoryName === selectedCategory);
+    const itemsForCategory = category ? category.items : [];
+    setSelectedCategoryItems(itemsForCategory);
+
+    // Reset itemName if the category changes
+    const updatedItems = [...items];
+    updatedItems[index].categoryName = selectedCategory;
+    updatedItems[index].itemName = ""; // Reset itemName when category changes
     setItems(updatedItems);
   };
 
@@ -153,23 +174,35 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                 <div className="flex space-x-4">
                   <div className="flex-1">
                     <label className="block text-gray-700">Category</label>
-                    <input
-                      type="text"
+                    <select
                       name="categoryName"
                       value={item.categoryName}
-                      onChange={(e) => handleItemChange(index, e)}
+                      onChange={(e) => handleCategoryChange(index, e)}
                       className="w-full p-2 border border-gray-300 rounded"
-                    />
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((category) => (
+                        <option key={category.categoryName} value={category.categoryName}>
+                          {category.categoryName}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex-1">
                     <label className="block text-gray-700">Item Name</label>
-                    <input
-                      type="text"
+                    <select
                       name="itemName"
                       value={item.itemName}
                       onChange={(e) => handleItemChange(index, e)}
                       className="w-full p-2 border border-gray-300 rounded"
-                    />
+                    >
+                      <option value="">Select Item</option>
+                      {selectedCategoryItems.map((itemOption) => (
+                        <option key={itemOption.itemCode} value={itemOption.itemName}>
+                          {itemOption.itemName}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex-1">
                     <label className="block text-gray-700">Quantity</label>
