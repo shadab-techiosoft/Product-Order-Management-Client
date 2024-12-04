@@ -10,6 +10,7 @@ import Hero from './components/Hero';
 import PrivateRoute from './PrivateRoute'; // Import the PrivateRoute component
 
 import UserPage from './components/Authentication/UserPage';
+import ResetPasswordPage from './components/Authentication/ResetPasswordPage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           
           {/* Login Route */}
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password/:resetToken" element={<ResetPasswordPage />} />
           
           {/* Orders Page Route (client role only) */}
           <Route path="/orders" element={<PrivateRoute allowedRoles={['client']} element={<OrdersPage />} />} />

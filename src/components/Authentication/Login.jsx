@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // React Router's useNavigate hook
-
+import ForgotPasswordModal from './ForgotPasswordModal';
 function Login() {
   // State for capturing the email/username and password
   const [login, setLogin] = useState('');
   const [pswd, setPswd] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate(); // Initialize useNavigate
 
   // Handle form submission
@@ -95,7 +95,10 @@ function Login() {
             <input className="mr-1" type="checkbox" />
             <span>Remember Me</span>
           </label>
-          <a className="text-blue-600 hover:text-blue-700 hover:underline hover:underline-offset-4" href="#">
+          <a
+            className="text-blue-600 hover:text-blue-700 hover:underline hover:underline-offset-4 cursor-pointer"
+            onClick={() => setShowForgotPassword(true)} // Show Forgot Password Modal
+          >
             Forgot Password?
           </a>
         </div>
@@ -120,6 +123,8 @@ function Login() {
           Don't have an account? <a className="text-red-600 hover:underline hover:underline-offset-4" href="#">Register</a>
         </div>
       </div>
+
+      {showForgotPassword && <ForgotPasswordModal onClose={() => setShowForgotPassword(false)} />}
     </section>
   );
   
