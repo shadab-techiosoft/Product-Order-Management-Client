@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify"; // Import toast notifica
 import "react-toastify/dist/ReactToastify.css"; // Import toast CSS
 import { FaEdit, FaTrash } from "react-icons/fa";
 import EditOrderModal from "./EditOrderModal";
+import { API_BASE_URL } from "../../config";
 const OrdersTable = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +14,7 @@ const OrdersTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null); // Order data to be edited
+  const [selectedTab, setSelectedTab] = useState("all");
   const token = localStorage.getItem('token')
 
 
@@ -20,7 +22,7 @@ const OrdersTable = () => {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/orderItem/get",
+          `${API_BASE_URL}/api/orderItem/get`,
           {
             method: "GET",
             headers: {
@@ -93,38 +95,8 @@ const OrdersTable = () => {
     setOrders((prevOrders) => [newOrder, ...prevOrders]);
   };
 
-  const handleUpdateStatus = async (orderId, newStatus) => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/orderItem/accept-reject/${orderId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update status");
-      }
-
-      // Update the order in the state
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order._id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
-
-      // Show a success toast
-      toast.success("Order status updated successfully!");
-    } catch (error) {
-      // Show an error toast
-      toast.error("Error: " + error.message);
-    }
-  };
+  
+  
 
   const handleDeleteOrder = async (orderId) => {
     try {
@@ -152,6 +124,66 @@ const OrdersTable = () => {
     }
   };
 
+   // Filter orders based on the selected tab
+   const filteredOrders = orders.filter((order) => {
+    if (selectedTab === "all") return true;
+    return order.status.toLowerCase() === selectedTab;
+  });
+
+  // Sorting orders by status: Pending, Reject, Accept, and by latest created
+const sortedOrders = filteredOrders.sort((a, b) => {
+  const statusOrder = ["Pending", "Reject", "Accept"];
+  const statusComparison = statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+    if (statusComparison === 0) {
+    return new Date(b.createdAt) - new Date(a.createdAt); 
+  }
+  return statusComparison;
+});
+
+const handleUpdateStatus = async (orderId, newStatus) => {
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/orderItem/accept-reject/${orderId}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      }
+    );
+
+    // If the response is not OK, throw an error and extract the message from the response
+    if (!response.ok) {
+      const errorData = await response.json(); // Get error details from the backend
+      throw new Error(errorData.message || "Failed to update status");
+    }
+
+    // Update the order in the state if the status update is successful
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order._id === orderId ? { ...order, status: newStatus } : order
+      )
+    );
+
+    // Show a success toast
+    toast.success("Order status updated successfully!");
+  } catch (error) {
+    // Show an error toast with the message from the backend
+    toast.error("Error: " + error.message);
+  }
+};
+
+
+
+
+const orderCounts = {
+  all: orders.length,
+  pending: orders.filter(order => order.status.toLowerCase() === 'pending').length,
+  accept: orders.filter(order => order.status.toLowerCase() === 'accept').length,
+  reject: orders.filter(order => order.status.toLowerCase() === 'reject').length
+};
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -164,12 +196,44 @@ const OrdersTable = () => {
     <div className="bg-white rounded-lg shadow-lg p-6">
       <ToastContainer />
       <div className="flex justify-between mb-4">
+        
         <h2 className="text-2xl font-semibold">Orders</h2>
         <button
           onClick={openModal}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Create Order
+        </button>
+      </div>
+
+      <div className="flex space-x-4 mb-4">
+        <button
+          className={`py-2 px-4 rounded ${selectedTab === "all" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+          onClick={() => setSelectedTab("all")}
+        >
+          All
+          <span className="ml-2 text-xs bg-blue-200 text-blue-800 rounded-full px-2">{orderCounts.all}</span>
+        </button>
+        <button
+          className={`py-2 px-4 rounded ${selectedTab === "pending" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+          onClick={() => setSelectedTab("pending")}
+        >
+          Pending
+          <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 rounded-full px-2">{orderCounts.pending}</span>
+        </button>
+        <button
+          className={`py-2 px-4 rounded ${selectedTab === "accept" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+          onClick={() => setSelectedTab("accept")}
+        >
+          Completed
+          <span className="ml-2 text-xs bg-green-200 text-green-800 rounded-full px-2">{orderCounts.accept}</span>
+        </button>
+        <button
+          className={`py-2 px-4 rounded ${selectedTab === "reject" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
+          onClick={() => setSelectedTab("reject")}
+        >
+          Reject
+          <span className="ml-2 text-xs bg-red-200 text-red-800 rounded-full px-2">{orderCounts.reject}</span>
         </button>
       </div>
 
@@ -187,7 +251,7 @@ const OrdersTable = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order, orderIndex) => (
+            {sortedOrders.map((order, orderIndex) => (
               <React.Fragment key={order._id}>
                 {/* Order summary row with alternating colors */}
                 <tr
@@ -199,6 +263,11 @@ const OrdersTable = () => {
                     <div className="flex justify-between">
                       <div>
                         <strong>Order ID: {order._id}</strong>
+                        {order.totalItemAmount === 0 && (
+                          <span className="bg-red-200 text-black-800 font-semibold ml-2 px-3 py-1 rounded-full ">
+                            Your Product is Under Processing
+                          </span>
+                        )}
                         <br />
                         Created By:{" "}
                         {order.createdBy
@@ -299,7 +368,7 @@ const OrdersTable = () => {
         </table>
 
         <div className="block sm:hidden">
-          {orders.map((order) => (
+          {sortedOrders.map((order) => (
             <MobileOrderCard
               key={order._id}
               order={order}

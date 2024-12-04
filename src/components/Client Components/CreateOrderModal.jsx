@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import { API_BASE_URL } from '../../config';
 const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
   const [items, setItems] = useState([{ categoryName: '', itemName: '', qty: 1 }]);
 
@@ -22,7 +22,7 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
     const token = localStorage.getItem("token") 
 
     try {
-      const response = await fetch('http://localhost:5000/api/orderItem/create', {
+      const response = await fetch(`${API_BASE_URL}/api/orderItem/create`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -46,7 +46,7 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+    <div className="fixed z-50 inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full sm:w-[90%] md:w-[80%] lg:w-[70%]">
         <h2 className="text-2xl font-semibold mb-4 text-center">Create Order</h2>
 

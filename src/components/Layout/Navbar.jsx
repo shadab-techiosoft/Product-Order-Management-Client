@@ -1,20 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBars, FaUserCircle } from "react-icons/fa";
+import { API_BASE_URL } from "../../config";
+// Helper function to fetch user details
+const fetchUserDetails = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users/details`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`, // Attach the token
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user details');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching user details:", error.message);
+    throw error;
+  }
+};
 
 const Navbar = ({ toggleSidebar }) => {
   // State to manage visibility of the profile modal
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Dummy user data for the profile modal
-  const userData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+123 456 7890",
-  };
+  // State to store user details
+  const [userData, setUserData] = useState(null);
+
+  // Fetch token from localStorage
+  const token = localStorage.getItem('token');  // Assuming token is stored in localStorage
+
+  // Fetch user details when the component mounts
+  useEffect(() => {
+    if (token) {
+      fetchUserDetails(token)
+        .then((data) => {
+          console.log("User Data Fetched:", data);  // Log the fetched data
+          setUserData(data);  // Update user data state
+        })
+        .catch((error) => {
+          console.error("Error in fetching user details:", error);
+        });
+    }
+  }, [token]); // Only run on mount when token is available
 
   // Toggle function for opening/closing the profile modal
   const toggleProfileModal = () => {
-    console.log("Profile Modal State Toggled:", isProfileOpen); // Check the state
+    console.log("Profile Modal State Toggled:", !isProfileOpen);  // Log the new state value
     setIsProfileOpen(!isProfileOpen);
   };
 
@@ -31,8 +66,8 @@ const Navbar = ({ toggleSidebar }) => {
 
         {/* Center Section: App Title or Logo */}
         <div className="text-2xl font-bold tracking-wide text-white">
-          <span className="text-indigo-100">My</span>
-          <span className="text-pink-100">App</span>
+          <span className="text-indigo-100">SMART </span>
+          <span className="text-pink-100">ITBOX</span>
         </div>
 
         {/* Right Section: Profile Section with Hover Effects */}
@@ -48,9 +83,8 @@ const Navbar = ({ toggleSidebar }) => {
           </div>
 
           {/* Profile Modal */}
-          {isProfileOpen && (
+          {isProfileOpen && userData && (
             <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-4 z-50">
-              {console.log("Rendering Profile Modal")} {/* Debugging */}
               <h2 className="text-xl font-semibold mb-4">User Profile</h2>
               <div className="mb-4">
                 <strong className="text-black">Name:</strong>
@@ -62,7 +96,11 @@ const Navbar = ({ toggleSidebar }) => {
               </div>
               <div className="mb-4">
                 <strong className="text-black">Phone:</strong>
-                <p className="text-black">{userData.phone}</p>
+                <p className="text-black">{userData.mobileNo}</p>
+              </div>
+              <div className="mb-4">
+                <strong className="text-black">Role:</strong>
+                <p className="text-black">{userData.role}</p>
               </div>
               <div className="flex justify-end mt-4">
                 <button

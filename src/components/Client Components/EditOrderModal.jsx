@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-
+import { API_BASE_URL } from '../../config';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
   const [items, setItems] = useState(order.items || []);
 
@@ -25,8 +27,8 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
   // Function to handle form submission
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/orderItem/${order._id}/client`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/orderItem/${order._id}/client`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -36,14 +38,17 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update order');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update order');
       }
 
       const updatedOrder = await response.json();
       onOrderUpdated(updatedOrder); // Update the parent component with the new order data
       closeModal(); // Close the modal after successful update
+      toast.success('Order updated successfully!'); // Success toast
     } catch (error) {
       console.error('Error updating order:', error);
+      toast.error(`Error: ${error.message}`); // Error toast
     }
   };
 
@@ -128,6 +133,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
