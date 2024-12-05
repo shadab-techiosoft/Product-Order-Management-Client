@@ -108,15 +108,19 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
   // Update items based on selected category
   const handleCategoryChange = (index, event) => {
     const selectedCategory = event.target.value;
-    const category = categories.find(cat => cat.categoryName === selectedCategory);
+    const category = categories.find((cat) => cat.categoryName === selectedCategory);
     const itemsForCategory = category ? category.items : [];
-    setSelectedCategoryItems(itemsForCategory);
 
-    // Reset itemName if the category changes
+    // Update only the current item's category and itemName
     const updatedItems = [...items];
     updatedItems[index].categoryName = selectedCategory;
     updatedItems[index].itemName = ""; // Reset itemName when category changes
     setItems(updatedItems);
+
+    // Update the available items for this specific item row
+    const updatedCategoryItems = [...selectedCategoryItems];
+    updatedCategoryItems[index] = itemsForCategory; // Set the items for the current item row
+    setSelectedCategoryItems(updatedCategoryItems);
   };
 
   // Helper functions to calculate totals
@@ -197,7 +201,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                       className="w-full p-2 border border-gray-300 rounded"
                     >
                       <option value="">Select Item</option>
-                      {selectedCategoryItems.map((itemOption) => (
+                      {(selectedCategoryItems[index] || []).map((itemOption) => (
                         <option key={itemOption.itemCode} value={itemOption.itemName}>
                           {itemOption.itemName}
                         </option>

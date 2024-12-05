@@ -10,7 +10,7 @@ const MobileOrderCard = ({
 }) => {
   // Track if the order's items are expanded or collapsed
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const items = Array.isArray(order.items) ? order.items : [];
 
   // Toggle the expanded state of the items section
@@ -37,7 +37,9 @@ const MobileOrderCard = ({
         <div className="font-semibold">Status</div>
         <div>
           <span
-            className={`px-3 py-1 rounded-full text-sm ${getActionClass(order.status)}`}
+            className={`px-3 py-1 rounded-full text-sm ${getActionClass(
+              order.status
+            )}`}
           >
             {order.status}
           </span>
@@ -48,7 +50,7 @@ const MobileOrderCard = ({
             <select
               className="bg-gray-200 border border-gray-300 rounded px-2 py-1 hover:bg-gray-300"
               onChange={(e) => handleUpdateStatus(order._id, e.target.value)}
-              value={order.status}  // Make sure the current status is selected
+              value={order.status} // Make sure the current status is selected
             >
               <option value="" disabled>
                 Select Status
@@ -81,13 +83,14 @@ const MobileOrderCard = ({
                 className="mb-3 p-4 bg-white rounded-lg shadow-sm"
               >
                 <div className="flex justify-between text-sm text-gray-700">
-                  <div className="font-semibold">Item</div>
-                  <div>{item.itemName || "Unknown"}</div>
-                </div>
-                <div className="flex justify-between text-sm text-gray-700">
                   <div className="font-semibold">Category</div>
                   <div>{item.categoryName || "Unknown"}</div>
                 </div>
+                <div className="flex justify-between text-sm text-gray-700">
+                  <div className="font-semibold">Item</div>
+                  <div>{item.itemName || "Unknown"}</div>
+                </div>
+                
                 <div className="flex justify-between text-sm text-gray-700">
                   <div className="font-semibold">Quantity</div>
                   <div>{item.qty || "Unknown"}</div>

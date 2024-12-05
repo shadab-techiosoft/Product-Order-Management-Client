@@ -17,43 +17,43 @@ const OrdersTable = () => {
   const [selectedTab, setSelectedTab] = useState("all");
   const token = localStorage.getItem('token')
 
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/orderItem/get`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch orders");
-        }
-
-        const data = await response.json();
-        setOrders(data.orders);
-
-        const initialExpandedState = data.orders.reduce((acc, order) => {
-          acc[order._id] = false;
-          return acc;
-        }, {});
-
-        setExpandedItems(initialExpandedState);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
+ const fetchOrders = async () => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/orderItem/get`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       }
-    };
+    );
 
-    fetchOrders();
-  }, [token]);
+    if (!response.ok) {
+      throw new Error("Failed to fetch orders");
+    }
+
+    const data = await response.json();
+    setOrders(data.orders);
+
+    const initialExpandedState = data.orders.reduce((acc, order) => {
+      acc[order._id] = false;
+      return acc;
+    }, {});
+
+    setExpandedItems(initialExpandedState);
+  } catch (error) {
+    setError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+
+  fetchOrders();
+}, [token]);
 
   const getActionClass = (status) => {
     switch (status) {
@@ -91,13 +91,11 @@ const OrdersTable = () => {
     setIsEditModalOpen(false);
     setOrderToEdit(null);
   };
-  const handleOrderCreated = (newOrder) => {
-    setOrders((prevOrders) => [newOrder, ...prevOrders]);
+  
+  const handleOrderCreated = async (newOrder) => {
+   await fetchOrders()
   };
-
   
-  
-
   const handleDeleteOrder = async (orderId) => {
     try {
       const response = await fetch(
@@ -123,12 +121,6 @@ const OrdersTable = () => {
       toast.error("Error: " + error.message);
     }
   };
-
-   // Filter orders based on the selected tab
-  //  const filteredOrders = orders.filter((order) => {
-  //   if (selectedTab === "all") return true;
-  //   return order.status.toLowerCase() === selectedTab;
-  // });
 
   const filteredOrders = orders.filter((order) => {
     if (selectedTab === "all") return true;
@@ -181,15 +173,6 @@ const handleUpdateStatus = async (orderId, newStatus) => {
   }
 };
 
-
-
-
-// const orderCounts = {
-//   all: orders.length,
-//   pending: orders.filter(order => order.status.toLowerCase() === 'pending').length,
-//   accept: orders.filter(order => order.status.toLowerCase() === 'accept').length,
-//   reject: orders.filter(order => order.status.toLowerCase() === 'reject').length
-// };
 
 const orderCounts = {
   all: orders.length,
@@ -256,8 +239,9 @@ const orderCounts = {
           <thead>
             <tr className="text-left bg-gray-100 text-sm text-gray-700">
               <th className="p-4">#</th>
-              <th className="p-4">Product Items</th>
               <th className="p-4">Category</th>
+              <th className="p-4">Product Items</th>
+              
               <th className="p-4">Quantity</th>
               <th className="p-4">Price</th>
               <th className="p-4">Total Amount</th>
@@ -366,8 +350,9 @@ const orderCounts = {
       className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"}`}
     >
       <td className="p-4"></td>
-      <td className="p-4">{item.itemName || "Unknown"}</td> {/* Display "Unknown" if itemName is empty */}
       <td className="p-4">{item.categoryName || "Unknown"}</td> {/* Display "Unknown" if categoryName is empty */}
+      <td className="p-4">{item.itemName || "Unknown"}</td> {/* Display "Unknown" if itemName is empty */}
+      
       <td className="p-4">{item.qty || "Unknown"}</td> {/* Display "Unknown" if qty is empty */}
       <td className="p-4">{item.price ? `${item.price}` : "Unknown"}</td> {/* Display "Unknown" if price is empty */}
       <td className="p-4">{item.totalAmount ? `${item.totalAmount}` : "Unknown"}</td> {/* Display "Unknown" if totalAmount is empty */}
