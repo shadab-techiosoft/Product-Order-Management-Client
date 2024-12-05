@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from '../Layout/ClientSidebar';
 import Navbar from '../Layout/Navbar';
 import OrdersTable from './OrdersTable';
-import Pagination from './Pagination';
+
 
 const OrdersPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -23,7 +23,7 @@ const OrdersPage = () => {
         <Navbar toggleSidebar={toggleSidebar} />
         <div>
           <OrdersTable />
-          <Pagination />
+         
         </div>
       </div>
     </div>

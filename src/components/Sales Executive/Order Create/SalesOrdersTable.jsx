@@ -6,7 +6,7 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 import EditOrderModal from "./EditOrderModal";
 import ForClientOrderModal from "./ForClientOrderModal";
 import Pagination from "./Pagination";
-import SearchBar from "./SearchBar"; 
+import SearchBar from "./SearchBar";
 const SalesOrdersTable = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,12 +15,12 @@ const SalesOrdersTable = () => {
   const [selectedTab, setSelectedTab] = useState("all"); // Track selected tab
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null); // Order data to be edited
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-// Pagination state
-const [currentPage, setCurrentPage] = useState(1);
-const ordersPerPage = 30; 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 30;
   const openModal = () => {
     setIsModalOpen(true);
   };
@@ -159,13 +159,6 @@ const ordersPerPage = 30;
     }
   };
 
-  // Filter orders based on the selected tab
-  // const filteredOrders = orders.filter((order) => {
-  //   if (selectedTab === "all") return true;
-  //   return order.status.toLowerCase() === selectedTab;
-  // });
-
-
   const filteredByTab = orders.filter((order) => {
     if (selectedTab === "all") return true;
     return order.status.toLowerCase() === selectedTab.toLowerCase();
@@ -185,34 +178,34 @@ const ordersPerPage = 30;
     );
   });
 
-
- 
-
   // Sorting orders by status: Pending, Reject, Accept
   const sortedOrders = filteredOrders.sort((a, b) => {
     const statusOrder = ["Pending", "Reject", "Accept"];
-    const statusComparison = statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
-      if (statusComparison === 0) {
-      return new Date(b.createdAt) - new Date(a.createdAt); 
+    const statusComparison =
+      statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+    if (statusComparison === 0) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
     }
     return statusComparison;
   });
-  
 
   const orderCounts = {
     all: orders.length,
-    pending: orders.filter(order => order.status.toLowerCase() === 'pending').length,
-    accept: orders.filter(order => order.status.toLowerCase() === 'accept').length,
-    reject: orders.filter(order => order.status.toLowerCase() === 'reject').length
+    pending: orders.filter((order) => order.status.toLowerCase() === "pending")
+      .length,
+    accept: orders.filter((order) => order.status.toLowerCase() === "accept")
+      .length,
+    reject: orders.filter((order) => order.status.toLowerCase() === "reject")
+      .length,
   };
 
-// Pagination Logic
-const indexOfLastOrder = currentPage * ordersPerPage;
-const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-const currentOrders = sortedOrders.slice(indexOfFirstOrder, indexOfLastOrder); // Use sorted orders for pagination
+  // Pagination Logic
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = sortedOrders.slice(indexOfFirstOrder, indexOfLastOrder); // Use sorted orders for pagination
 
-// Calculate total pages
-const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
+  // Calculate total pages
+  const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -226,7 +219,6 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
     <div className="bg-white rounded-lg shadow-lg p-6">
       <ToastContainer />
       <div className="flex justify-between mb-4">
-        
         <h2 className="text-2xl font-semibold">Orders</h2>
         <button
           onClick={openModal}
@@ -235,46 +227,71 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
           Create Order
         </button>
         <ForClientOrderModal isOpen={isModalOpen} closeModal={closeModal} />
-        
       </div>
-      
-      {/* Tab navigation */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-4"> {/* Flex column on small screens, row on larger screens */}
-  <div className="flex space-x-4 mb-4 sm:mb-0"> {/* Margin at bottom for mobile, removed on larger screens */}
-    <button
-      className={`py-2 px-4 rounded ${selectedTab === "all" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-      onClick={() => setSelectedTab("all")}
-    >
-      All
-      <span className="ml-2 text-xs bg-blue-200 text-blue-800 rounded-full px-2">{orderCounts.all}</span>
-    </button>
-    <button
-      className={`py-2 px-4 rounded ${selectedTab === "pending" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-      onClick={() => setSelectedTab("pending")}
-    >
-      Pending
-      <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 rounded-full px-2">{orderCounts.pending}</span>
-    </button>
-    <button
-      className={`py-2 px-4 rounded ${selectedTab === "accept" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-      onClick={() => setSelectedTab("accept")}
-    >
-      Completed
-      <span className="ml-2 text-xs bg-green-200 text-green-800 rounded-full px-2">{orderCounts.accept}</span>
-    </button>
-    <button
-      className={`py-2 px-4 rounded ${selectedTab === "reject" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-      onClick={() => setSelectedTab("reject")}
-    >
-      Reject
-      <span className="ml-2 text-xs bg-red-200 text-red-800 rounded-full px-2">{orderCounts.reject}</span>
-    </button>
-  </div>
-  
-  {/* Search bar placed on the right side on larger screens */}
-  <SearchBar onSearch={(query) => setSearchQuery(query)} />
-</div>
 
+      {/* Tab navigation */}
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
+        {" "}
+        {/* Flex column on small screens, row on larger screens */}
+        <div className="flex space-x-4 mb-4 sm:mb-0">
+          {" "}
+          {/* Margin at bottom for mobile, removed on larger screens */}
+          <button
+            className={`py-2 px-4 rounded ${
+              selectedTab === "all"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setSelectedTab("all")}
+          >
+            All
+            <span className="ml-2 text-xs bg-blue-200 text-blue-800 rounded-full px-2">
+              {orderCounts.all}
+            </span>
+          </button>
+          <button
+            className={`py-2 px-4 rounded ${
+              selectedTab === "pending"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setSelectedTab("pending")}
+          >
+            Pending
+            <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 rounded-full px-2">
+              {orderCounts.pending}
+            </span>
+          </button>
+          <button
+            className={`py-2 px-4 rounded ${
+              selectedTab === "accept"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setSelectedTab("accept")}
+          >
+            Completed
+            <span className="ml-2 text-xs bg-green-200 text-green-800 rounded-full px-2">
+              {orderCounts.accept}
+            </span>
+          </button>
+          <button
+            className={`py-2 px-4 rounded ${
+              selectedTab === "reject"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setSelectedTab("reject")}
+          >
+            Reject
+            <span className="ml-2 text-xs bg-red-200 text-red-800 rounded-full px-2">
+              {orderCounts.reject}
+            </span>
+          </button>
+        </div>
+        {/* Search bar placed on the right side on larger screens */}
+        <SearchBar onSearch={(query) => setSearchQuery(query)} />
+      </div>
 
       <div className="overflow-x-auto">
         <table className="table-auto w-full border-collapse hidden sm:table">
@@ -283,7 +300,7 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
               <th className="p-4">#</th>
               <th className="p-4">Category</th>
               <th className="p-4">Product Items</th>
-              
+
               <th className="p-4">Quantity</th>
               <th className="p-4">Price</th>
               <th className="p-4">Total Amount</th>
@@ -294,7 +311,9 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
             {currentOrders.map((order, orderIndex) => (
               <React.Fragment key={order._id}>
                 <tr
-                  className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"}`}
+                  className={`border-b ${
+                    orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
+                  }`}
                 >
                   <td colSpan="7" className="p-4">
                     <div className="flex justify-between">
@@ -307,16 +326,22 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
                         )}
                         <br />
                         Created By:{" "}
-                        {order.createdBy ? order.createdBy.name : "Unknown"}{" "}
+                        {order.createdBy
+                          ? order.createdBy.name
+                          : "Unknown"}{" "}
                         <br />
                         Assigned To:{" "}
-                        {order.assignedTo ? order.assignedTo.name : "Not Assigned"}{" "}
+                        {order.assignedTo
+                          ? order.assignedTo.name
+                          : "Not Assigned"}{" "}
                         <br />
                         Total Product Amount: {order.totalItemAmount}
                       </div>
                       <div>
                         <div
-                          className={`px-3 py-1 rounded-full text-sm ${getActionClass(order.status)}`}
+                          className={`px-3 py-1 rounded-full text-sm ${getActionClass(
+                            order.status
+                          )}`}
                         >
                           {order.status}
                         </div>
@@ -324,12 +349,16 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
                         <div className="mt-2 flex justify-end">
                           <select
                             className="bg-gray-200 border border-gray-300 rounded px-2 py-1 hover:bg-gray-300"
-                            onChange={(e) => handleUpdateStatus(order._id, e.target.value)}
-                            defaultValue=""
+                            onChange={(e) =>
+                              handleUpdateStatus(order._id, e.target.value)
+                            }
+                            defaultValue={order.status} // Set the default value to the current order status
                           >
                             <option value="" disabled>
                               Select Status
                             </option>
+                            <option value="Pending">Pending</option>{" "}
+                            {/* Added Pending status */}
                             <option value="Accept">Accept</option>
                             <option value="Reject">Reject</option>
                           </select>
@@ -356,7 +385,9 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
 
                 {/* Serial number row */}
                 <tr
-                  className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"}`}
+                  className={`border-b ${
+                    orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
+                  }`}
                 >
                   <td className="p-4">{orderIndex + 1}</td>
                   <td colSpan="6">
@@ -364,7 +395,9 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
                       onClick={() => toggleItemRow(order._id)}
                       className="text-blue-500 hover:text-blue-700"
                     >
-                      {expandedItems[order._id] ? "Collapse Items" : "Expand Items"}
+                      {expandedItems[order._id]
+                        ? "Collapse Items"
+                        : "Expand Items"}
                     </button>
                   </td>
                 </tr>
@@ -374,12 +407,14 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
                   order.items.map((item) => (
                     <tr
                       key={item._id}
-                      className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"}`}
+                      className={`border-b ${
+                        orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
+                      }`}
                     >
                       <td className="p-4"></td>
                       <td className="p-4">{item.categoryName}</td>
                       <td className="p-4">{item.itemName}</td>
-                      
+
                       <td className="p-4">{item.qty}</td>
                       <td className="p-4">{`${item.price}`}</td>
                       <td className="p-4">{`${item.totalAmount}`}</td>
@@ -390,7 +425,7 @@ const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
             ))}
           </tbody>
         </table>
-        
+
         <div className="block sm:hidden">
           {currentOrders.map((order) => (
             <MobileOrderCard

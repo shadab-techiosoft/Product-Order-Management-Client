@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css"; // Import toast CSS
 import { FaEdit, FaTrash } from "react-icons/fa";
 import EditOrderModal from "./EditOrderModal";
 import { API_BASE_URL } from "../../config";
+import SearchBar from "./SearchBar";
+import Pagination from './Pagination';
 const OrdersTable = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,45 +17,44 @@ const OrdersTable = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [orderToEdit, setOrderToEdit] = useState(null); // Order data to be edited
   const [selectedTab, setSelectedTab] = useState("all");
-  const token = localStorage.getItem('token')
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 5;
+  const token = localStorage.getItem("token");
 
- const fetchOrders = async () => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/orderItem/get`,
-      {
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/orderItem/get`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch orders");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch orders");
+      const data = await response.json();
+      setOrders(data.orders);
+
+      const initialExpandedState = data.orders.reduce((acc, order) => {
+        acc[order._id] = false;
+        return acc;
+      }, {});
+
+      setExpandedItems(initialExpandedState);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const data = await response.json();
-    setOrders(data.orders);
-
-    const initialExpandedState = data.orders.reduce((acc, order) => {
-      acc[order._id] = false;
-      return acc;
-    }, {});
-
-    setExpandedItems(initialExpandedState);
-  } catch (error) {
-    setError(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-useEffect(() => {
-
-  fetchOrders();
-}, [token]);
+  useEffect(() => {
+    fetchOrders();
+  }, [token]);
 
   const getActionClass = (status) => {
     switch (status) {
@@ -91,11 +92,11 @@ useEffect(() => {
     setIsEditModalOpen(false);
     setOrderToEdit(null);
   };
-  
+
   const handleOrderCreated = async (newOrder) => {
-   await fetchOrders()
+    await fetchOrders();
   };
-  
+
   const handleDeleteOrder = async (orderId) => {
     try {
       const response = await fetch(
@@ -122,64 +123,90 @@ useEffect(() => {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
+  const filteredByTab = orders.filter((order) => {
     if (selectedTab === "all") return true;
-    return order.status && typeof order.status === "string" && order.status.toLowerCase() === selectedTab;
+    return order.status.toLowerCase() === selectedTab.toLowerCase();
   });
-  
 
-  // Sorting orders by status: Pending, Reject, Accept, and by latest created
-const sortedOrders = filteredOrders.sort((a, b) => {
-  const statusOrder = ["Pending", "Reject", "Accept"];
-  const statusComparison = statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
-    if (statusComparison === 0) {
-    return new Date(b.createdAt) - new Date(a.createdAt); 
-  }
-  return statusComparison;
-});
-
-const handleUpdateStatus = async (orderId, newStatus) => {
-  try {
-    const response = await fetch(
-      `http://localhost:5000/api/orderItem/accept-reject/${orderId}`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      }
-    );
-
-    // If the response is not OK, throw an error and extract the message from the response
-    if (!response.ok) {
-      const errorData = await response.json(); // Get error details from the backend
-      throw new Error(errorData.message || "Failed to update status");
-    }
-
-    // Update the order in the state if the status update is successful
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order._id === orderId ? { ...order, status: newStatus } : order
+  // Filter orders by search query
+  const filteredOrders = filteredByTab.filter((order) => {
+    const queryLower = searchQuery.toLowerCase();
+    return (
+      order._id.toLowerCase().includes(queryLower) ||
+      order.status.toLowerCase().includes(queryLower) ||
+      order.items.some(
+        (item) =>
+          item.categoryName.toLowerCase().includes(queryLower) ||
+          item.itemName.toLowerCase().includes(queryLower)
       )
     );
+  });
 
-    // Show a success toast
-    toast.success("Order status updated successfully!");
-  } catch (error) {
-    // Show an error toast with the message from the backend
-    toast.error("Error: " + error.message);
-  }
-};
+  // Sorting orders by status: Pending, Reject, Accept, and by latest created
+  const sortedOrders = filteredOrders.sort((a, b) => {
+    const statusOrder = ["Pending", "Reject", "Accept"];
+    const statusComparison =
+      statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+    if (statusComparison === 0) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    return statusComparison;
+  });
 
+  const handleUpdateStatus = async (orderId, newStatus) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/orderItem/accept-reject/${orderId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: newStatus }), // Send the updated status
+        }
+      );
 
-const orderCounts = {
-  all: orders.length,
-  pending: orders.filter(order => order.status && order.status.toLowerCase() === 'pending').length,
-  accept: orders.filter(order => order.status && order.status.toLowerCase() === 'accept').length,
-  reject: orders.filter(order => order.status && order.status.toLowerCase() === 'reject').length
-};
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update status");
+      }
+
+      // Update the order in the state if the status update is successful
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+
+      // Show success toast
+      toast.success("Order status updated successfully!");
+    } catch (error) {
+      // Show error toast
+      toast.error("Error: " + error.message);
+    }
+  };
+
+  const orderCounts = {
+    all: orders.length,
+    pending: orders.filter(
+      (order) => order.status && order.status.toLowerCase() === "pending"
+    ).length,
+    accept: orders.filter(
+      (order) => order.status && order.status.toLowerCase() === "accept"
+    ).length,
+    reject: orders.filter(
+      (order) => order.status && order.status.toLowerCase() === "reject"
+    ).length,
+  };
+
+  // Pagination Logic
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = sortedOrders.slice(indexOfFirstOrder, indexOfLastOrder); // Use sorted orders for pagination
+
+  // Calculate total pages
+  const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -193,7 +220,6 @@ const orderCounts = {
     <div className="bg-white rounded-lg shadow-lg p-6">
       <ToastContainer />
       <div className="flex justify-between mb-4">
-        
         <h2 className="text-2xl font-semibold">Orders</h2>
         <button
           onClick={openModal}
@@ -203,35 +229,67 @@ const orderCounts = {
         </button>
       </div>
 
-      <div className="flex space-x-4 mb-4">
-        <button
-          className={`py-2 px-4 rounded ${selectedTab === "all" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-          onClick={() => setSelectedTab("all")}
-        >
-          All
-          <span className="ml-2 text-xs bg-blue-200 text-blue-800 rounded-full px-2">{orderCounts.all}</span>
-        </button>
-        <button
-          className={`py-2 px-4 rounded ${selectedTab === "pending" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-          onClick={() => setSelectedTab("pending")}
-        >
-          Pending
-          <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 rounded-full px-2">{orderCounts.pending}</span>
-        </button>
-        <button
-          className={`py-2 px-4 rounded ${selectedTab === "accept" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-          onClick={() => setSelectedTab("accept")}
-        >
-          Completed
-          <span className="ml-2 text-xs bg-green-200 text-green-800 rounded-full px-2">{orderCounts.accept}</span>
-        </button>
-        <button
-          className={`py-2 px-4 rounded ${selectedTab === "reject" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}
-          onClick={() => setSelectedTab("reject")}
-        >
-          Reject
-          <span className="ml-2 text-xs bg-red-200 text-red-800 rounded-full px-2">{orderCounts.reject}</span>
-        </button>
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
+        {" "}
+        {/* Flex column on small screens, row on larger screens */}
+        <div className="flex space-x-4 mb-4 sm:mb-0">
+          {" "}
+          {/* Margin at bottom for mobile, removed on larger screens */}
+          <button
+            className={`py-2 px-4 rounded ${
+              selectedTab === "all"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setSelectedTab("all")}
+          >
+            All
+            <span className="ml-2 text-xs bg-blue-200 text-blue-800 rounded-full px-2">
+              {orderCounts.all}
+            </span>
+          </button>
+          <button
+            className={`py-2 px-4 rounded ${
+              selectedTab === "pending"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setSelectedTab("pending")}
+          >
+            Pending
+            <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 rounded-full px-2">
+              {orderCounts.pending}
+            </span>
+          </button>
+          <button
+            className={`py-2 px-4 rounded ${
+              selectedTab === "accept"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setSelectedTab("accept")}
+          >
+            Completed
+            <span className="ml-2 text-xs bg-green-200 text-green-800 rounded-full px-2">
+              {orderCounts.accept}
+            </span>
+          </button>
+          <button
+            className={`py-2 px-4 rounded ${
+              selectedTab === "reject"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setSelectedTab("reject")}
+          >
+            Reject
+            <span className="ml-2 text-xs bg-red-200 text-red-800 rounded-full px-2">
+              {orderCounts.reject}
+            </span>
+          </button>
+        </div>
+        {/* Search bar placed on the right side on larger screens */}
+        <SearchBar onSearch={(query) => setSearchQuery(query)} />
       </div>
 
       <div className="overflow-x-auto">
@@ -241,7 +299,7 @@ const orderCounts = {
               <th className="p-4">#</th>
               <th className="p-4">Category</th>
               <th className="p-4">Product Items</th>
-              
+
               <th className="p-4">Quantity</th>
               <th className="p-4">Price</th>
               <th className="p-4">Total Amount</th>
@@ -249,7 +307,7 @@ const orderCounts = {
             </tr>
           </thead>
           <tbody>
-            {sortedOrders.map((order, orderIndex) => (
+            {currentOrders.map((order, orderIndex) => (
               <React.Fragment key={order._id}>
                 {/* Order summary row with alternating colors */}
                 <tr
@@ -295,11 +353,13 @@ const orderCounts = {
                               onChange={(e) =>
                                 handleUpdateStatus(order._id, e.target.value)
                               }
-                              defaultValue=""
+                              defaultValue={order.status} // Set the default value to the current order status
                             >
                               <option value="" disabled>
                                 Select Status
                               </option>
+                              <option value="Pending">Pending</option>{" "}
+                              {/* Added Pending status */}
                               <option value="Accept">Accept</option>
                               <option value="Reject">Reject</option>
                             </select>
@@ -344,40 +404,57 @@ const orderCounts = {
 
                 {/* Expanded item rows */}
                 {expandedItems[order._id] &&
-  order.items.map((item, orderIndex) => (
-    <tr
-      key={item._id}
-      className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"}`}
-    >
-      <td className="p-4"></td>
-      <td className="p-4">{item.categoryName || "Unknown"}</td> {/* Display "Unknown" if categoryName is empty */}
-      <td className="p-4">{item.itemName || "Unknown"}</td> {/* Display "Unknown" if itemName is empty */}
-      
-      <td className="p-4">{item.qty || "Unknown"}</td> {/* Display "Unknown" if qty is empty */}
-      <td className="p-4">{item.price ? `${item.price}` : "Unknown"}</td> {/* Display "Unknown" if price is empty */}
-      <td className="p-4">{item.totalAmount ? `${item.totalAmount}` : "Unknown"}</td> {/* Display "Unknown" if totalAmount is empty */}
-      <td className="p-4"></td>
-    </tr>
-  ))}
-
+                  order.items.map((item, orderIndex) => (
+                    <tr
+                      key={item._id}
+                      className={`border-b ${
+                        orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
+                      }`}
+                    >
+                      <td className="p-4"></td>
+                      <td className="p-4">
+                        {item.categoryName || "Unknown"}
+                      </td>{" "}
+                      {/* Display "Unknown" if categoryName is empty */}
+                      <td className="p-4">{item.itemName || "Unknown"}</td>{" "}
+                      {/* Display "Unknown" if itemName is empty */}
+                      <td className="p-4">{item.qty || "Unknown"}</td>{" "}
+                      {/* Display "Unknown" if qty is empty */}
+                      <td className="p-4">
+                        {item.price ? `${item.price}` : "Unknown"}
+                      </td>{" "}
+                      {/* Display "Unknown" if price is empty */}
+                      <td className="p-4">
+                        {item.totalAmount ? `${item.totalAmount}` : "Unknown"}
+                      </td>{" "}
+                      {/* Display "Unknown" if totalAmount is empty */}
+                      <td className="p-4"></td>
+                    </tr>
+                  ))}
               </React.Fragment>
             ))}
           </tbody>
         </table>
 
         <div className="block sm:hidden">
-          {sortedOrders.map((order) => (
+          {currentOrders.map((order) => (
             <MobileOrderCard
               key={order._id}
               order={order}
               getActionClass={getActionClass}
-              openEditModal={openEditModal}  
-              handleDeleteOrder={handleDeleteOrder} 
+              openEditModal={openEditModal}
+              handleDeleteOrder={handleDeleteOrder}
               handleUpdateStatus={handleUpdateStatus}
             />
           ))}
         </div>
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
 
       {isModalOpen && (
         <CreateOrderModal
@@ -390,7 +467,6 @@ const orderCounts = {
           order={orderToEdit}
           closeModal={closeEditModal}
           onOrderUpdated={handleOrderCreated}
-          
         />
       )}
     </div>
