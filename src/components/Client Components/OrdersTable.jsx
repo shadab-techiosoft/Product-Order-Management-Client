@@ -19,7 +19,7 @@ const OrdersTable = () => {
   const [selectedTab, setSelectedTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const ordersPerPage = 5;
+  const ordersPerPage = 50;
   const token = localStorage.getItem("token");
 
   const fetchOrders = async () => {

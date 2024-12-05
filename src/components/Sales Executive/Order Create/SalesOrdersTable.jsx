@@ -20,7 +20,7 @@ const SalesOrdersTable = () => {
   const [searchQuery, setSearchQuery] = useState("");
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const ordersPerPage = 30;
+  const ordersPerPage = 50;
   const openModal = () => {
     setIsModalOpen(true);
   };

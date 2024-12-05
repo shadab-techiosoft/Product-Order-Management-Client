@@ -21,10 +21,11 @@ const OrdersPage = () => {
       <div className={`flex-1 p-4 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         {/* Pass the toggleSidebar function to the Navbar */}
         <Navbar toggleSidebar={toggleSidebar} />
-        <div>
+        <br />
+        
           <OrdersTable />
          
-        </div>
+        
       </div>
     </div>
   );
