@@ -1,62 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 export default function MaterialInwardRegister() {
   const [items, setItems] = useState([]);
-  const [grnId, setGrnId] = useState('');
-  const [timestamp, setTimestamp] = useState('');
-  const [supplierName, setSupplierName] = useState('');
-  const [containerSeal, setContainerSeal] = useState('');
-  const [invoiceNo, setInvoiceNo] = useState('');
-
-  useEffect(() => {
-    // Fetch data from the API
-    const fetchData = async () => {
-        const token = localStorage.getItem('token')
-      try {
-        const response = await fetch('http://localhost:5000/api/purchase-orders', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`, // Add your token here
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const result = await response.json();
-
-        if (result.data && result.data.length > 0) {
-          const orderData = result.data[0];
-          setGrnId(orderData.referenceNo); 
-          setTimestamp(new Date(orderData.createdAt).toLocaleString()); 
-          setSupplierName(orderData.toPerson); 
-          
-          // Set item details from the API
-          const fetchedItems = orderData.items.map(item => ({
-            itemCode: item.itemCode,
-            itemName: item.itemDescription,
-            ctns: item.Qtyctn || '',
-            qtyPerCtn: item.qty || '',
-            totalQty: (item.Qtyctn || 0) * (item.qty || 0),
-            pricePerUnit: 0, // This is left to be filled by user
-            totalAmount: 0, // This is left to be calculated based on qty and price
-            weightPerCtn: item.Wtctn || 0,
-            totalWeight: (item.Wtctn || 0) * (item.Qtyctn || 0),
-            cbmPerCtn: item.Cbmctn || 0,
-            totalCBM: (item.Cbmctn || 0) * (item.Qtyctn || 0),
-            shippingMark: '', // Empty to be filled by user
-            rmb: 0,
-            inr: 0,
-            image: item.itemImage || '/placeholder.svg',
-          }));
-
-          setItems(fetchedItems);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, []); // Empty dependency array, this effect runs only once after initial render
 
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...items];
@@ -92,39 +37,25 @@ export default function MaterialInwardRegister() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-yellow-300 px-2 py-1">GRN ID</div>
-            <div className="bg-yellow-300 px-2 py-1">{grnId || '#VALUE!'}</div>
+            <div className="bg-yellow-300 px-2 py-1">#VALUE!</div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>TimeStamp</div>
-            <input
-              value={timestamp}
-              onChange={(e) => setTimestamp(e.target.value)}
-              className="border rounded px-2 py-1 w-full"
-            />
+            <input defaultValue="09/12/2024 11:41:16" className="border rounded px-2 py-1 w-full" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>Supplier Name</div>
-            <input
-              value={supplierName}
-              onChange={(e) => setSupplierName(e.target.value)}
-              className="border rounded px-2 py-1 w-full"
-            />
+            <select defaultValue="POLARIS" className="border rounded px-2 py-1 w-full">
+              <option value="POLARIS">POLARIS</option>
+            </select>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>Container & Seal</div>
-            <input
-              value={containerSeal}
-              onChange={(e) => setContainerSeal(e.target.value)}
-              className="border rounded px-2 py-1 w-full"
-            />
+            <input defaultValue="#24242" className="border rounded px-2 py-1 w-full" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>Invoice No.</div>
-            <input
-              value={invoiceNo}
-              onChange={(e) => setInvoiceNo(e.target.value)}
-              className="border rounded px-2 py-1 w-full"
-            />
+            <input defaultValue="INC3334" className="border rounded px-2 py-1 w-full" />
           </div>
         </div>
 
@@ -164,40 +95,56 @@ export default function MaterialInwardRegister() {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-blue-200 font-bold">Total Amount</div>
-            <input value="800000" className="border rounded px-2 py-1 w-full bg-green-100" />
+            <input defaultValue="800000" className="border rounded px-2 py-1 w-full bg-green-100" />
           </div>
           <div className="flex gap-2">
             <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">RE-CALL</button>
             <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">TRIGGER</button>
+            <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">OK</button>
           </div>
         </div>
       </div>
 
-      {/* Items Table */}
-      <div className="bg-white p-4 rounded-lg shadow-md">
-        <table className="w-full table-auto border-collapse">
+      {/* Table */}
+      <div className="overflow-x-auto border rounded-lg">
+        <table className="w-full caption-bottom text-sm">
           <thead>
-            <tr className="bg-gray-200">
-              <th className="p-2 border">Item Code</th>
-              <th className="p-2 border">Description</th>
-              <th className="p-2 border">CTNs</th>
-              <th className="p-2 border">Qty/Ctn</th>
-              <th className="p-2 border">Total Qty</th>
-              <th className="p-2 border">Price/Unit</th>
-              <th className="p-2 border">Total Amount</th>
-              <th className="p-2 border">Weight/Ctn</th>
-              <th className="p-2 border">Total Weight</th>
-              <th className="p-2 border">CBM/Ctn</th>
-              <th className="p-2 border">Total CBM</th>
-              <th className="p-2 border">Shipping Marks</th>
+            <tr className="bg-gray-100">
+              <th className="px-4 py-2">Item Code</th>
+              <th className="px-4 py-2">ItemName</th>
+              <th className="px-4 py-2">Ctns</th>
+              <th className="px-4 py-2">Qty/Ctn</th>
+              <th className="px-4 py-2">Total Qty</th>
+              <th className="px-4 py-2">Price/Unit</th>
+              <th className="px-4 py-2">Total Amount</th>
+              <th className="px-4 py-2">Wt/ctn</th>
+              <th className="px-4 py-2">Total Weight</th>
+              <th className="px-4 py-2">CBM/Ctn</th>
+              <th className="px-4 py-2">Total CBM</th>
+              <th className="px-4 py-2">Shipping Mark</th>
+              <th className="px-4 py-2">RMB</th>
+              <th className="px-4 py-2">INR</th>
+              <th className="px-4 py-2">Image</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item, index) => (
-              <tr key={index}>
-                <td className="p-2 border">{item.itemCode}</td>
-                <td className="p-2 border">{item.itemName}</td>
-                <td className="p-2 border">
+              <tr key={index} className="border-t">
+                <td className="px-4 py-2">
+                  <input
+                    value={item.itemCode}
+                    onChange={(e) => handleItemChange(index, 'itemCode', e.target.value)}
+                    className="w-full border rounded px-2 py-1"
+                  />
+                </td>
+                <td className="px-4 py-2">
+                  <input
+                    value={item.itemName}
+                    onChange={(e) => handleItemChange(index, 'itemName', e.target.value)}
+                    className="w-full border rounded px-2 py-1"
+                  />
+                </td>
+                <td className="px-4 py-2">
                   <input
                     type="number"
                     value={item.ctns}
@@ -205,48 +152,100 @@ export default function MaterialInwardRegister() {
                     className="w-full border rounded px-2 py-1"
                   />
                 </td>
-                <td className="p-2 border">
+                <td className="px-4 py-2">
                   <input
                     type="number"
                     value={item.qtyPerCtn}
-                    onChange={(e) => handleItemChange(index, 'qtyPerCtn', e.target.value)}
+                    onChange={(e) => handleItemChange(index, 'qtyPerCtn', Number(e.target.value))}
                     className="w-full border rounded px-2 py-1"
                   />
                 </td>
-                <td className="p-2 border">{item.totalQty}</td>
-                <td className="p-2 border">
+                <td className="px-4 py-2">
+                  <input
+                    type="number"
+                    value={item.totalQty}
+                    readOnly
+                    className="w-full border rounded px-2 py-1 bg-gray-100"
+                  />
+                </td>
+                <td className="px-4 py-2">
                   <input
                     type="number"
                     value={item.pricePerUnit}
-                    onChange={(e) => handleItemChange(index, 'pricePerUnit', e.target.value)}
+                    onChange={(e) => handleItemChange(index, 'pricePerUnit', Number(e.target.value))}
                     className="w-full border rounded px-2 py-1"
                   />
                 </td>
-                <td className="p-2 border">{item.totalAmount}</td>
-                <td className="p-2 border">
+                <td className="px-4 py-2">
+                  <input
+                    type="number"
+                    value={item.totalAmount.toFixed(2)}
+                    readOnly
+                    className="w-full border rounded px-2 py-1 bg-gray-100"
+                  />
+                </td>
+                <td className="px-4 py-2">
                   <input
                     type="number"
                     value={item.weightPerCtn}
-                    onChange={(e) => handleItemChange(index, 'weightPerCtn', e.target.value)}
+                    onChange={(e) => handleItemChange(index, 'weightPerCtn', Number(e.target.value))}
                     className="w-full border rounded px-2 py-1"
                   />
                 </td>
-                <td className="p-2 border">{item.totalWeight}</td>
-                <td className="p-2 border">
+                <td className="px-4 py-2">
+                  <input
+                    type="number"
+                    value={item.totalWeight.toFixed(3)}
+                    readOnly
+                    className="w-full border rounded px-2 py-1 bg-gray-100"
+                  />
+                </td>
+                <td className="px-4 py-2">
                   <input
                     type="number"
                     value={item.cbmPerCtn}
-                    onChange={(e) => handleItemChange(index, 'cbmPerCtn', e.target.value)}
+                    onChange={(e) => handleItemChange(index, 'cbmPerCtn', Number(e.target.value))}
                     className="w-full border rounded px-2 py-1"
                   />
                 </td>
-                <td className="p-2 border">{item.totalCBM}</td>
-                <td className="p-2 border">
+                <td className="px-4 py-2">
                   <input
-                    type="text"
+                    type="number"
+                    value={item.totalCBM.toFixed(3)}
+                    readOnly
+                    className="w-full border rounded px-2 py-1 bg-gray-100"
+                  />
+                </td>
+                <td className="px-4 py-2">
+                  <input
                     value={item.shippingMark}
                     onChange={(e) => handleItemChange(index, 'shippingMark', e.target.value)}
                     className="w-full border rounded px-2 py-1"
+                  />
+                </td>
+                <td className="px-4 py-2">
+                  <input
+                    type="number"
+                    value={item.rmb}
+                    onChange={(e) => handleItemChange(index, 'rmb', Number(e.target.value))}
+                    className="w-full border rounded px-2 py-1"
+                  />
+                </td>
+                <td className="px-4 py-2">
+                  <input
+                    type="number"
+                    value={item.inr}
+                    onChange={(e) => handleItemChange(index, 'inr', Number(e.target.value))}
+                    className="w-full border rounded px-2 py-1"
+                  />
+                </td>
+                <td className="px-4 py-2">
+                  <img
+                    src={item.image}
+                    alt={item.itemName}
+                    width={40}
+                    height={40}
+                    className="object-contain"
                   />
                 </td>
               </tr>
