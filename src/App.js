@@ -11,6 +11,9 @@ import PrivateRoute from './PrivateRoute'; // Import the PrivateRoute component
 
 import UserPage from './components/Authentication/UserPage';
 import ResetPasswordPage from './components/Authentication/ResetPasswordPage';
+import PurchaseOrderForm from './components/Sales Executive/Purchase Order/PurchaseOrderForm';
+import PurchaseOrdersTable from './components/Sales Executive/Purchase Order/PurchaseOrdersTable';
+import MaterialInwardRegister from './components/Sales Executive/Purchase Order/MaterialInwardRegister';
 
 function App() {
   return (
@@ -28,6 +31,9 @@ function App() {
           {/* Orders Page Route (client role only) */}
           <Route path="/orders" element={<PrivateRoute allowedRoles={['client']} element={<OrdersPage />} />} />
           <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']} element={<UserPage />} />} />
+          <Route path="/sales-executive/purchaseOrder" element={<PrivateRoute allowedRoles={['sales executive']} element={<PurchaseOrderForm />} />} />
+          <Route path="/sales-executive/purchaseOrder-details" element={<PrivateRoute allowedRoles={['sales executive']} element={<PurchaseOrdersTable />} />} />
+          <Route path="/sales-executive/material-inward" element={<PrivateRoute allowedRoles={['sales executive']} element={<MaterialInwardRegister />} />} />
           
           {/* Sales Orders Page Route (sales executive role only) */}
           <Route path="/sales-executive/order" element={<PrivateRoute allowedRoles={['sales executive']} element={<SalesOrdersPage />} />} />

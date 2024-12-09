@@ -20,6 +20,10 @@ const OrdersTable = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 50;
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false); // Modal visibility for rejection
+const [rejectReason, setRejectReason] = useState(""); // Reason for rejecting
+const [orderToReject, setOrderToReject] = useState(null); // Order to be rejected
+
   const token = localStorage.getItem("token");
 
   const fetchOrders = async () => {
@@ -154,38 +158,89 @@ const OrdersTable = () => {
   });
 
   const handleUpdateStatus = async (orderId, newStatus) => {
+    if (newStatus === "Reject") {
+      // Open the modal for rejecting the order and ask for a reason
+      setOrderToReject(orderId); // Store the order ID to be rejected
+      setIsRejectModalOpen(true); // Open the rejection modal
+    } else {
+      // Handle other statuses (Accept or Pending)
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/orderItem/accept-reject/${orderId}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: newStatus }),
+          }
+        );
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to update status");
+        }
+  
+        // Update the order in the state if the status update is successful
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === orderId ? { ...order, status: newStatus } : order
+          )
+        );
+  
+        toast.success("Order status updated successfully!");
+      } catch (error) {
+        toast.error("Error: " + error.message);
+      }
+    }
+  };
+
+  const handleRejectOrder = async () => {
+    if (!rejectReason.trim()) {
+      // If the rejection reason is empty, show an error message
+      toast.error("Please provide a reason for rejection.");
+      return; // Prevent submission if the reason is empty
+    }
+  
     try {
       const response = await fetch(
-        `http://localhost:5000/api/orderItem/accept-reject/${orderId}`,
+        `http://localhost:5000/api/orderItem/accept-reject/${orderToReject}`,
         {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ status: newStatus }), // Send the updated status
+          body: JSON.stringify({ status: "Reject", reason: rejectReason }), // Send the reason
         }
       );
-
+  
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update status");
+        throw new Error(errorData.message || "Failed to reject order");
       }
-
-      // Update the order in the state if the status update is successful
+  
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order._id === orderId ? { ...order, status: newStatus } : order
+          order._id === orderToReject ? { ...order, status: "Reject" } : order
         )
       );
-
-      // Show success toast
-      toast.success("Order status updated successfully!");
+  
+      toast.success("Order rejected successfully!");
+      setIsRejectModalOpen(false); // Close the modal after rejection
+      setRejectReason(""); // Clear the reason input
     } catch (error) {
-      // Show error toast
       toast.error("Error: " + error.message);
     }
   };
+  
+  
+  const closeRejectModal = () => {
+    setIsRejectModalOpen(false);
+    setRejectReason(""); // Clear the reason input when modal is closed
+  };
+    
 
   const orderCounts = {
     all: orders.length,
@@ -336,6 +391,8 @@ const OrdersTable = () => {
                           : "Not Assigned"}{" "}
                         <br />
                         Total Product Amount: {order.totalItemAmount}
+                        <br />
+                        Rejection Reason:<span className="text-red-700 font-bold"> {order.rejectionReason || ""}</span>
                       </div>
                       <div>
                         <div
@@ -373,12 +430,12 @@ const OrdersTable = () => {
                           >
                             <FaEdit />
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => handleDeleteOrder(order._id)}
                             className="text-red-500 hover:text-red-700"
                           >
                             <FaTrash />
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     </div>
@@ -449,6 +506,35 @@ const OrdersTable = () => {
           ))}
         </div>
       </div>
+
+      {isRejectModalOpen && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white p-6 rounded-lg w-1/3">
+      <h3 className="text-xl font-semibold mb-4">Provide a Reason for Rejection</h3>
+      <textarea
+        value={rejectReason}
+        onChange={(e) => setRejectReason(e.target.value)}
+        placeholder="Enter rejection reason..."
+        className="w-full p-2 border border-gray-300 rounded mb-4"
+      />
+      <div className="flex justify-end space-x-4">
+        <button
+          onClick={closeRejectModal}
+          className="px-4 py-2 bg-gray-300 rounded"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleRejectOrder}
+          className="px-4 py-2 bg-red-500 text-white rounded"
+        >
+          Reject Order
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       <Pagination
         currentPage={currentPage}
