@@ -22,7 +22,7 @@ export default function ViewPurchaseOrder() {
   const fetchDetails = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:5000/api/purchase-order/${referenceNo}`, {
+      const response = await axios.get(`http://localhost:5000/api/purchase-order/purchase-order/${referenceNo}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

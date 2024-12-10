@@ -11,23 +11,23 @@ export default function MaterialInwardRegister() {
   const [invoiceNo, setInvoiceNo] = useState("");
   const [invoiceCopy, setInvoiceCopy] = useState("");
   const [warehouseName, setWarehouseName] = useState("");
-  const [inlandCharges, setInlandCharges] = useState("");
-  const [agentComm, setAgentComm] = useState("");
-  const [freight, setFreight] = useState("");
-  const [customDuty, setCustomDuty] = useState("");
-  const [clearingAgentFee, setClearingAgentFee] = useState("");
-  const [transport, setTransport] = useState("");
-  const [unloadingCharges, setUnloadingCharges] = useState("");
-  const [Cfs, setCfs] = useState("");
-  const [DO, setDO] = useState("");
-  const [totalAmount, setTotalAmount] = useState("");
+  const [inlandCharges, setInlandCharges] = useState(0);
+  const [agentComm, setAgentComm] = useState(0);
+  const [freight, setFreight] = useState(0);
+  const [customDuty, setCustomDuty] = useState(0);
+  const [clearingAgentFee, setClearingAgentFee] = useState(0);
+  const [transport, setTransport] = useState(0);
+  const [unloadingCharges, setUnloadingCharges] = useState(0);
+  const [Cfs, setCfs] = useState(0);
+  const [DO, setDO] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
   const [triggerClicked, setTriggerClicked] = useState(false);
 
   const fetchDetails = async (referenceNo) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:5000/api/purchase-order/${referenceNo}`,
+        `http://localhost:5000/api/purchase-order/purchase-order/${referenceNo}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -92,10 +92,10 @@ export default function MaterialInwardRegister() {
 
   const calculateTotalAmount = () => {
     // Sum all the fields to get the total amount
-    const itemTotalAmount = items.reduce((acc, item) => acc + item.totalItemAmount, 0);
+    
 
     const total =
-      itemTotalAmount +
+      
       inlandCharges +
       agentComm +
       freight +
@@ -204,7 +204,7 @@ export default function MaterialInwardRegister() {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/update/${grnId}`,
+        `http://localhost:5000/api/purchase-order/update/${grnId}`,
         updatedData,
         {
           headers: {
@@ -300,6 +300,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">Inland Charges (INR)</div>
       <input
+      type="number"
         value={inlandCharges}
         onChange={(e) => setInlandCharges(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -308,6 +309,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">Agent Comm. (2% ON CIF)</div>
       <input
+      type="number"
         value={agentComm}
         onChange={(e) => setAgentComm(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -316,6 +318,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">Freight (INR)</div>
       <input
+      type="number"
         value={freight}
         onChange={(e) => setFreight(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -324,6 +327,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">Custom Duty (INR)</div>
       <input
+      type="number"
         value={customDuty}
         onChange={(e) => setCustomDuty(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -332,6 +336,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">Clearing Agent Fee (INR)</div>
       <input
+      type="number"
         value={clearingAgentFee}
         onChange={(e) => setClearingAgentFee(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -340,6 +345,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">CFS (INR)</div>
       <input
+      type="number"
         value={Cfs}
         onChange={(e) => setCfs(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -348,6 +354,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">DO (INR)</div>
       <input
+      type="number"
         value={DO}
         onChange={(e) => setDO(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -360,6 +367,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">Transport (INR)</div>
       <input
+      type="number"
         value={transport}
         onChange={(e) => setTransport(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -368,6 +376,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-yellow-200">Unloading Chrgs.(INR)</div>
       <input
+      type="number"
         value={unloadingCharges}
         onChange={(e) => setUnloadingCharges(e.target.value)}
         className="border rounded px-1 py-1 w-full"
@@ -376,6 +385,7 @@ export default function MaterialInwardRegister() {
     <div className="grid grid-cols-2 gap-1">
       <div className="bg-blue-200 font-bold">Total Amount</div>
       <input
+      type="number"
         value={totalAmount}
         onChange={(e) => setTotalAmount(e.target.value)}
         className="border rounded px-1 py-1 w-full bg-green-100"

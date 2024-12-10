@@ -16,6 +16,7 @@ import PurchaseOrdersTable from './components/Sales Executive/Purchase Order/Pur
 import MaterialInwardRegister from './components/Sales Executive/Purchase Order/MaterialInwardRegister';
 import ViewPurchaseOrder from './components/Sales Executive/Purchase Order/ViewPurchaseOrder';
 import Layout from './components/Layout/Layout';
+import InventoryTable from './components/Sales Executive/Purchase Order/InventoryTable';
 function App() {
   return (
     <div className="App">
@@ -38,6 +39,7 @@ function App() {
             <Route path="purchaseOrder-details" element={<PurchaseOrdersTable />} />
             <Route path="material-inward/:grnId" element={<MaterialInwardRegister />} />
             <Route path="purchase-order/:referenceNo" element={<ViewPurchaseOrder />} />
+            <Route path="warehouse-inventory" element={<InventoryTable />} />
           </Route>
           
           {/* Sales Orders Page Route (sales executive role only) */}

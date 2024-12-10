@@ -30,7 +30,7 @@ const PurchaseOrdersTable = () => {
     setError(null);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/purchase-orders`, {
+      const response = await fetch(`${API_BASE_URL}/api/purchase-order/purchase-orders`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -75,7 +75,7 @@ const PurchaseOrdersTable = () => {
   const handleDelete = async (orderId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/api/purchase-orders/${orderId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/purchase-order/purchase-orders/${orderId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
