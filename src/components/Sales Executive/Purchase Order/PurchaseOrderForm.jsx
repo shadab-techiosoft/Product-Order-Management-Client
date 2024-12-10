@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const PurchaseOrderForm = () => {
@@ -6,7 +6,7 @@ const PurchaseOrderForm = () => {
   const [toPerson, setToPerson] = useState("");
   const [items, setItems] = useState([
     {
-       Category: "", 
+      Category: "",
       itemCode: "",
       itemDescription: "",
       unit: "",
@@ -14,18 +14,37 @@ const PurchaseOrderForm = () => {
       Qtyctn: "",
       Wtctn: "",
       Cbmctn: "",
-      
+      orderContainer: "", // This field is independent and editable
     },
   ]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
 
-  // This should come from an authenticated user
   const token = localStorage.getItem("token"); // Assume the token is stored in localStorage
+
+  // Fetch categories and items from the API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/categories/all-categories", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setCategories(response.data.categories);
+      } catch (error) {
+        console.error("Error fetching categories", error);
+      }
+    };
+
+    fetchCategories();
+  }, [token]);
 
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prepare data for the API
     const purchaseOrderData = {
       referenceNo,
       toPerson,
@@ -35,7 +54,7 @@ const PurchaseOrderForm = () => {
     try {
       const response = await axios.post("http://localhost:5000/api/purchase-order", purchaseOrderData, {
         headers: {
-          Authorization: `Bearer ${token}`, // Send token in the Authorization header
+          Authorization: `Bearer ${token}`,
         },
       });
       alert("Purchase Order Created: " + response.data.message);
@@ -45,12 +64,50 @@ const PurchaseOrderForm = () => {
     }
   };
 
+  // Handle category selection
+  const handleCategoryChange = (e, index) => {
+    const category = e.target.value;
+    const updatedItems = [...items];
+    updatedItems[index].Category = category;
+    updatedItems[index].itemCode = ""; // Clear the selected item code
+    updatedItems[index].itemDescription = ""; // Clear the selected item description
+    updatedItems[index].orderContainer = ""; // Clear the orderContainer
+    setItems(updatedItems);
+  };
+  
+
+  // Handle item selection
+  const handleItemChange = (e, index) => {
+    const itemCode = e.target.value; // The selected item code
+    const selectedCategoryData = categories.find((category) => category.categoryName === items[index].Category);
+    const selectedItem = selectedCategoryData.items.find((item) => item.itemCode === itemCode);
+  
+    const updatedItems = [...items];
+    updatedItems[index].itemCode = selectedItem.itemCode; // Update the item code
+    updatedItems[index].itemDescription = selectedItem.itemName; // Update the item description
+    updatedItems[index].unit = selectedItem.unit; // Update unit
+    updatedItems[index].itemImage = selectedItem.itemImage; // Update itemImage
+    updatedItems[index].Qtyctn = selectedItem.pcsPerCtn || ""; // Update Qtyctn
+    updatedItems[index].Wtctn = selectedItem.wtPerCtn || ""; // Update Wtctn
+    updatedItems[index].Cbmctn = selectedItem.cbmPerCtn || ""; // Update Cbmctn
+  
+    setItems(updatedItems);
+  };
+  
+  
+
+  const handleOrderContainerChange = (e, index) => {
+    const updatedItems = [...items];
+    updatedItems[index].orderContainer = e.target.value;
+    setItems(updatedItems);
+  };
+  
   // Add a new item row
   const addItem = () => {
     setItems([
       ...items,
       {
-        Category: "", 
+        Category: "",
         itemCode: "",
         itemDescription: "",
         unit: "",
@@ -58,17 +115,9 @@ const PurchaseOrderForm = () => {
         Qtyctn: "",
         Wtctn: "",
         Cbmctn: "",
-        
+        orderContainer: "", // Add empty orderContainer for the new row
       },
     ]);
-  };
-
-  // Handle input change for item fields
-  const handleItemChange = (e, index) => {
-    const { name, value } = e.target;
-    const updatedItems = [...items];
-    updatedItems[index][name] = value;
-    setItems(updatedItems);
   };
 
   // Handle delete row
@@ -78,161 +127,185 @@ const PurchaseOrderForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-[90rem] p-8 bg-white rounded-xl shadow-lg border border-gray-300">
-        <h2 className="text-4xl font-semibold text-gray-800 mb-8 text-center">Create Purchase Order</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="flex justify-center items-start p-6">
+      <div className="w-full max-w-15xl p-6 bg-white rounded-xl shadow-md border border-gray-200">
+        <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">Create Purchase Order</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Purchase Order General Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="col-span-1">
-              <label className="block text-lg font-medium text-gray-700">Reference No</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-base font-medium text-gray-700">Reference No</label>
               <input
                 type="text"
                 value={referenceNo}
                 onChange={(e) => setReferenceNo(e.target.value)}
-                className="mt-2 w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
             </div>
 
-            <div className="col-span-1">
-              <label className="block text-lg font-medium text-gray-700">To Person</label>
+            <div>
+              <label className="block text-base font-medium text-gray-700">To Person</label>
               <input
                 type="text"
                 value={toPerson}
                 onChange={(e) => setToPerson(e.target.value)}
-                className="mt-2 w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
             </div>
           </div>
 
           {/* Item Table */}
-          <div className="overflow-x-auto bg-gray-50 p-4 rounded-lg shadow-sm">
+          <div className="overflow-x-auto bg-gray-50 rounded-lg shadow-sm">
             <table className="min-w-full table-auto">
-              <thead className="bg-indigo-600 text-white">
+              <thead className="bg-indigo-600 text-white text-sm">
                 <tr>
-                <th className="px-6 py-3 text-sm font-semibold">Item Category</th>
-                <th className="px-6 py-3 text-sm font-semibold">Item Description</th>
-                  <th className="px-6 py-3 text-sm font-semibold">Item Code</th>                
-                  <th className="px-6 py-3 text-sm font-semibold">Unit</th>
-                  <th className="px-6 py-3 text-sm font-semibold">Item Image</th>
-                  <th className="px-6 py-3 text-sm font-semibold">QTY/CTN</th>
-                  <th className="px-6 py-3 text-sm font-semibold">WT/CTN</th>
-                  <th className="px-6 py-3 text-sm font-semibold">CBM/CTN</th>
-                 
-                  <th className="px-6 py-3 text-sm font-semibold">Actions</th>
+                  <th className="px-4 py-2">Item Category</th>
+                  <th className="px-4 py-2">Item Description</th>
+                  <th className="px-4 py-2">Item Code</th>
+                  <th className="px-4 py-2">Unit</th>
+                  <th className="px-4 py-2">Item Image</th>
+                  <th className="px-4 py-2">QTY/CTN</th>
+                  <th className="px-4 py-2">WT/CTN</th>
+                  <th className="px-4 py-2">CBM/CTN</th>
+                  <th className="px-4 py-2">Order Container</th>
+                  <th className="px-4 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-200">
-                    <td className="px-6 py-3">
-                      <input
-                        type="text"
-                        name="Category"
-                        value={item.Category}
-                        onChange={(e) => handleItemChange(e, index)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="text"
-                        name="itemDescription"
-                        value={item.itemDescription}
-                        onChange={(e) => handleItemChange(e, index)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="text"
-                        name="itemCode"
-                        value={item.itemCode}
-                        onChange={(e) => handleItemChange(e, index)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </td>                  
-                    <td className="px-6 py-3">
-                      <input
-                        type="text"
-                        name="unit"
-                        value={item.unit}
-                        onChange={(e) => handleItemChange(e, index)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="text"
-                        name="itemImage"
-                        value={item.itemImage}
-                        onChange={(e) => handleItemChange(e, index)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="number"
-                        name="Qtyctn"
-                        value={item.Qtyctn}
-                        onChange={(e) => handleItemChange(e, index)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="number"
-                        name="Wtctn"
-                        value={item.Wtctn}
-                        onChange={(e) => handleItemChange(e, index)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="number"
-                        name="Cbmctn"
-                        value={item.Cbmctn}
-                        onChange={(e) => handleItemChange(e, index)}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </td>
-                    
-                    <td className="px-6 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteRow(index)}
-                        className="text-red-600 hover:text-red-800 text-lg"
-                      >
-                        &times;
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+  {items.map((item, index) => (
+    <tr key={index} className="border-b border-gray-200">
+      <td className="px-2 py-1">
+        <select
+          name="Category"
+          value={item.Category}
+          onChange={(e) => handleCategoryChange(e, index)}
+          className="w-full px-2 py-1 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="">Select Category</option>
+          {categories.map((category, idx) => (
+            <option key={idx} value={category.categoryName}>
+              {category.categoryName}
+            </option>
+          ))}
+        </select>
+      </td>
+      <td className="px-2 py-1">
+        <select
+          name="itemDescription"
+          value={item.itemCode}  // Bind to itemCode of the current row
+          onChange={(e) => handleItemChange(e, index)} // Handle item change independently
+          className="w-full px-2 py-1 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option value="">Select Item</option>
+          {item.Category && categories
+            .find((category) => category.categoryName === item.Category)
+            .items.map((itemOption) => (
+              <option key={itemOption.itemCode} value={itemOption.itemCode}>
+                {itemOption.itemName}
+              </option>
+            ))}
+        </select>
+      </td>
+      <td className="px-2 py-1">
+        <input
+          type="text"
+          name="itemCode"
+          value={item.itemCode}
+          readOnly
+          className="w-full px-2 py-1 border rounded-lg bg-gray-200"
+        />
+      </td>
+      <td className="px-2 py-1">
+        <input
+          type="text"
+          name="unit"
+          value={item.unit}
+          readOnly
+          className="w-full px-2 py-1 border rounded-lg bg-gray-200"
+        />
+      </td>
+      <td className="px-2 py-1">
+        <input
+          type="text"
+          name="itemImage"
+          value={item.itemImage}
+          readOnly
+          className="w-full px-2 py-1 border rounded-lg bg-gray-200"
+        />
+      </td>
+      <td className="px-2 py-1">
+        <input
+          type="number"
+          name="Qtyctn"
+          value={item.Qtyctn}
+          onChange={(e) => handleItemChange(e, index)}
+          className="w-full px-2 py-1 border rounded-lg bg-gray-200"
+        />
+      </td>
+      <td className="px-2 py-1">
+        <input
+          type="number"
+          name="Wtctn"
+          value={item.Wtctn}
+          onChange={(e) => handleItemChange(e, index)}
+          className="w-full px-2 py-1 border rounded-lg bg-gray-200"
+        />
+      </td>
+      <td className="px-2 py-1">
+        <input
+          type="number"
+          name="Cbmctn"
+          value={item.Cbmctn}
+          onChange={(e) => handleItemChange(e, index)}
+          className="w-full px-2 py-1 border rounded-lg bg-gray-200"
+        />
+      </td>
+      <td className="px-2 py-1">
+        <input
+          type="number"
+          name="orderContainer"
+          value={item.orderContainer}
+          onChange={(e) => handleOrderContainerChange(e, index)}
+          className="w-full px-2 py-1 border rounded-lg "
+        />
+      </td>
+      <td className="px-2 py-1">
+        <button
+          type="button"
+          onClick={() => handleDeleteRow(index)}
+          className="px-2 py-1 text-red-600 bg-red-100 rounded-lg"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
             </table>
           </div>
 
-          {/* Add New Item Button */}
-          <div className="mt-4 text-right">
+          {/* Add Item Button */}
+          <div className="mt-4">
             <button
               type="button"
               onClick={addItem}
-              className="bg-indigo-500 text-white hover:bg-indigo-600 px-5 py-3 rounded-lg focus:ring-2 focus:ring-indigo-400"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
             >
-              <span className="text-lg">+ Add Item</span>
+              Add Item
             </button>
           </div>
 
           {/* Submit Button */}
-          <div className="mt-6 text-right">
+          <div className="mt-4 text-center">
             <button
               type="submit"
-              className="bg-indigo-600 text-white px-8 py-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="px-6 py-2 bg-green-600 text-white rounded-lg"
             >
-              Create Purchase Order
+              Submit Purchase Order
             </button>
           </div>
         </form>

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// Assuming you have a modal for editing and adding purchase orders
-// import EditPurchaseOrderModal from "./EditPurchaseOrderModal"; 
-// import AddPurchaseOrderModal from "./AddPurchaseOrderModal"; 
-import { API_BASE_URL } from "../../../config"; // Assuming this is already configured
-import ItemDetailsModal from "./ItemDetailsModal";
+import { useNavigate } from 'react-router-dom';
+
+import { API_BASE_URL } from "../../../config"; 
+
 const PurchaseOrdersTable = () => {
+  const navigate = useNavigate();
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,14 +15,11 @@ const PurchaseOrdersTable = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Modal states
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isAddOrderModalOpen, setIsAddOrderModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  
-  // View Item Details Modal State
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedItems, setSelectedItems] = useState([]);
+
+  const handleViewClick = (referenceNo) => {
+    // Navigate to the material inward page with the reference number as the grnId
+    navigate(`/sales-executive/material-inward/${referenceNo}`);
+  };
 
   useEffect(() => {
     fetchPurchaseOrders();
@@ -73,10 +70,7 @@ const PurchaseOrdersTable = () => {
     setCurrentPage(pageNumber);
   };
 
-  const handleEdit = (order) => {
-    setSelectedOrder(order);
-    setIsEditModalOpen(true);
-  };
+ 
 
   const handleDelete = async (orderId) => {
     try {
@@ -100,39 +94,21 @@ const PurchaseOrdersTable = () => {
   };
 
   const handleAddOrder = () => {
-    setIsAddOrderModalOpen(true);
+    navigate(`/sales-executive/purchaseOrder`);
   };
 
-  const openViewModal = (items) => {
-    setSelectedItems(items);
-    setIsViewModalOpen(true);
-  };
-
-  const closeEditModal = () => {
-    setIsEditModalOpen(false);
-    setSelectedOrder(null);
-  };
-
-  const closeAddOrderModal = () => {
-    setIsAddOrderModalOpen(false);
-  };
-
-  const closeViewModal = () => {
-    setIsViewModalOpen(false);
-    setSelectedItems([]);
-  };
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-lg">
       <div className="p-4">
         {/* Action section: Add Purchase Order & Search */}
         <div className="flex justify-between items-center mb-4">
-          {/* <button
+          <button
             onClick={handleAddOrder}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
           >
             Add Purchase Order
-          </button> */}
+          </button>
 
           <input
             type="text"
@@ -189,20 +165,14 @@ const PurchaseOrdersTable = () => {
                     <td className="px-4 py-2 text-sm">{order.createdBy?.username}</td>
                     <td className="px-4 py-2 text-sm">
                       <button
-                        onClick={() => openViewModal(order.items)}
+                        onClick={() => handleViewClick(order.referenceNo)} // Call navigate on click
                         className="text-blue-500 hover:text-blue-700"
                       >
                         View
                       </button>
                     </td>
                     <td className="px-4 py-2 text-sm flex space-x-2">
-                      {/* Edit Button */}
-                      <button
-                        onClick={() => handleEdit(order)}
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        <HiOutlinePencil size={20} />
-                      </button>
+                      
                       {/* Delete Button */}
                       <button
                         onClick={() => handleDelete(order._id)}
@@ -248,30 +218,7 @@ const PurchaseOrdersTable = () => {
         </div>
       </div>
 
-      {/* View Item Details Modal */}
-      {isViewModalOpen && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg w-11/12 max-w-3xl">
-            <h2 className="text-xl font-semibold mb-4">Item Details</h2>
-            <ul className="space-y-2">
-              {selectedItems.map((item, index) => (
-                <li key={index} className="text-sm">
-                  <strong>Item Code:</strong> {item.itemCode}<br />
-                  <strong>Description:</strong> {item.itemDescription || "No description"}<br />
-                  <strong>Quantity:</strong> {item.qty || "N/A"}<br />
-                  <strong>Unit:</strong> {item.unit}<br />
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={closeViewModal}
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      
 
       <ToastContainer />
     </div>

@@ -14,7 +14,8 @@ import ResetPasswordPage from './components/Authentication/ResetPasswordPage';
 import PurchaseOrderForm from './components/Sales Executive/Purchase Order/PurchaseOrderForm';
 import PurchaseOrdersTable from './components/Sales Executive/Purchase Order/PurchaseOrdersTable';
 import MaterialInwardRegister from './components/Sales Executive/Purchase Order/MaterialInwardRegister';
-
+import ViewPurchaseOrder from './components/Sales Executive/Purchase Order/ViewPurchaseOrder';
+import Layout from './components/Layout/Layout';
 function App() {
   return (
     <div className="App">
@@ -31,9 +32,13 @@ function App() {
           {/* Orders Page Route (client role only) */}
           <Route path="/orders" element={<PrivateRoute allowedRoles={['client']} element={<OrdersPage />} />} />
           <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']} element={<UserPage />} />} />
-          <Route path="/sales-executive/purchaseOrder" element={<PrivateRoute allowedRoles={['sales executive']} element={<PurchaseOrderForm />} />} />
-          <Route path="/sales-executive/purchaseOrder-details" element={<PrivateRoute allowedRoles={['sales executive']} element={<PurchaseOrdersTable />} />} />
-          <Route path="/sales-executive/material-inward" element={<PrivateRoute allowedRoles={['sales executive']} element={<MaterialInwardRegister />} />} />
+
+          <Route path="/sales-executive/*" element={<PrivateRoute allowedRoles={['sales executive']} element={<Layout />} />}>
+            <Route path="purchaseOrder" element={<PurchaseOrderForm />} />
+            <Route path="purchaseOrder-details" element={<PurchaseOrdersTable />} />
+            <Route path="material-inward/:grnId" element={<MaterialInwardRegister />} />
+            <Route path="purchase-order/:referenceNo" element={<ViewPurchaseOrder />} />
+          </Route>
           
           {/* Sales Orders Page Route (sales executive role only) */}
           <Route path="/sales-executive/order" element={<PrivateRoute allowedRoles={['sales executive']} element={<SalesOrdersPage />} />} />
