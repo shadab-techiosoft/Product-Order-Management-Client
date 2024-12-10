@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import ExcelExport from './ExcelExport';
 const PurchaseOrderForm = () => {
   const [referenceNo, setReferenceNo] = useState("");
   const [toPerson, setToPerson] = useState("");
@@ -309,6 +309,9 @@ const PurchaseOrderForm = () => {
             </button>
           </div>
         </form>
+        {/* <div className="mt-6 text-center">
+          <ExcelExport purchaseOrderData={{ referenceNo, toPerson, items }} />
+        </div> */}
       </div>
     </div>
   );
