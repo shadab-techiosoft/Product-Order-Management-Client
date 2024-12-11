@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const ForClientOrderModal = ({ isOpen, closeModal }) => {
   const [items, setItems] = useState([
-    { categoryName: "", itemName: "", qty: 1, price: 0 },
+    { categoryName: "", itemName: "", qty: 1, price: 0, wareHouseName: "" },
   ]);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryItems, setSelectedCategoryItems] = useState([]);
@@ -29,8 +29,8 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
   // Watch GST value from the form
   const gst = watch("gst", 0); // Default to 0 if not provided
 
-   // Fetch client and category data when the component mounts
-   useEffect(() => {
+  // Fetch client and category data when the component mounts
+  useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch clients
@@ -88,7 +88,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
 
   // Add a new item field
   const addItem = () => {
-    setItems([...items, { categoryName: "", itemName: "", qty: 1, price: 0 }]);
+    setItems([...items, { categoryName: "", itemName: "", qty: 1, price: 0, wareHouseName: "" }]);
   };
 
   // Remove an item field
@@ -144,7 +144,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
 
   const handleCloseModal = () => {
     reset({ gst: 0, clientId: "" }); // Reset form values
-    setItems([{ categoryName: "", itemName: "", qty: 1, price: 0 }]); // Reset items state
+    setItems([{ categoryName: "", itemName: "", qty: 1, price: 0, wareHouseName: "" }]); // Reset items state
     closeModal(); // Close the modal
   };
 
@@ -174,7 +174,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
 
             {/* Item Fields */}
             {items.map((item, index) => (
-              <div key={index} className="mb-4 ">
+              <div key={index} className="mb-4">
                 <div className="flex space-x-4">
                   <div className="flex-1">
                     <label className="block text-gray-700">Category</label>
@@ -192,6 +192,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                       ))}
                     </select>
                   </div>
+
                   <div className="flex-1">
                     <label className="block text-gray-700">Item Name</label>
                     <select
@@ -208,6 +209,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                       ))}
                     </select>
                   </div>
+
                   <div className="flex-1">
                     <label className="block text-gray-700">Quantity</label>
                     <input
@@ -218,12 +220,24 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </div>
+
                   <div className="flex-1">
                     <label className="block text-gray-700">Price</label>
                     <input
                       type="number"
                       name="price"
                       value={item.price}
+                      onChange={(e) => handleItemChange(index, e)}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+
+                  <div className="flex-1">
+                    <label className="block text-gray-700">Warehouse Name</label>
+                    <input
+                      type="text"
+                      name="wareHouseName"
+                      value={item.wareHouseName}
                       onChange={(e) => handleItemChange(index, e)}
                       className="w-full p-2 border border-gray-300 rounded"
                     />
@@ -288,7 +302,6 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
             <div className="flex justify-between mt-4">
               <button
                 type="button"
-                // onClick={closeModal}
                 onClick={handleCloseModal}
                 className="bg-gray-300 text-black rounded-lg py-2 px-6"
               >

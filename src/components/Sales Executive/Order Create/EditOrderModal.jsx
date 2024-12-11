@@ -11,6 +11,13 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
     setItems(newItems);
   };
 
+  // Function to handle warehouse name change for a specific item
+  const handleWarehouseChange = (index, value) => {
+    const newItems = [...items];
+    newItems[index].wareHouseName = value; // Update the warehouse name
+    setItems(newItems);
+  };
+
   // Function to handle GST change
   const handleGstChange = (e) => {
     setGst(e.target.value);
@@ -38,7 +45,10 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          items: items.map(item => ({ price: item.price })), // Map items to only include price
+          items: items.map(item => ({ 
+            price: item.price,
+            wareHouseName: item.wareHouseName // Include warehouse name in the request
+          })), 
           gst: gst // Include GST in the request
         }),
       });
@@ -57,7 +67,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-gray-800 bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+      <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full"> {/* Increased max width */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-gray-800">Edit Order</h2>
           <button 
@@ -68,7 +78,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
             </svg>
           </button>
         </div>
-
+  
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-700">Order Items</h3>
           {items.map((item, index) => (
@@ -83,7 +93,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
                   className="bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
-
+  
               {/* Display Category Name */}
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Category Name</label>
@@ -91,20 +101,20 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
                   type="text"
                   value={item.categoryName} // Show category name
                   readOnly // Make it read-only to only display
-                  className=" bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  className="bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
-
+  
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Quantity</label>
                 <input
                   type="text"
                   value={item.qty} // Show quantity
                   readOnly // Make it read-only to only display
-                  className=" bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  className="bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
-
+  
               {/* Price Input */}
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Price</label>
@@ -115,10 +125,21 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
                   className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
+  
+              {/* Warehouse Name Input */}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-600">Warehouse Name</label>
+                <input
+                  type="text"
+                  value={item.wareHouseName || ''} // Show warehouse name or empty if not provided
+                  onChange={(e) => handleWarehouseChange(index, e.target.value)}
+                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
             </div>
           ))}
         </div>
-
+  
         {/* GST Input */}
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-600">GST (%)</label>
@@ -129,7 +150,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
-
+  
         {/* Total Amount Section */}
         <div className="mt-6">
           <div className="text-sm text-gray-700">
@@ -138,7 +159,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
             <p><strong>Total Amount (With GST): </strong><span className="font-semibold text-indigo-600">{totalAmountWithGST.toFixed(2)}</span></p>
           </div>
         </div>
-
+  
         <div className="flex justify-between items-center mt-4">
           <div className="space-x-4">
             <button
@@ -157,6 +178,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
       </div>
     </div>
   );
+  
 };
 
 export default EditOrderModal;

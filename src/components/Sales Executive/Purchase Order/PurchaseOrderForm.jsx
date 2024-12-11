@@ -18,6 +18,7 @@ const PurchaseOrderForm = () => {
     },
   ]);
   const [categories, setCategories] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -40,6 +41,42 @@ const PurchaseOrderForm = () => {
 
     fetchCategories();
   }, [token]);
+
+  useEffect(() => {
+    const fetchRefrenceNo = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/purchase-order/last-reference", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setReferenceNo(response.data.referenceNo);
+      } catch (error) {
+        console.error("Error fetching categories", error);
+      }
+    };
+
+    fetchRefrenceNo();
+  }, [token]);
+
+  // Fetch suppliers from the API
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/supplier/suppliers", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setSuppliers(response.data.suppliers);
+      } catch (error) {
+        console.error("Error fetching suppliers", error);
+      }
+    };
+
+    fetchSuppliers();
+  }, [token]);
+
 
   // Handle form submit
   const handleSubmit = async (e) => {
@@ -147,13 +184,19 @@ const PurchaseOrderForm = () => {
 
             <div>
               <label className="block text-base font-medium text-gray-700">To Person</label>
-              <input
-                type="text"
+              <select
                 value={toPerson}
                 onChange={(e) => setToPerson(e.target.value)}
                 className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 required
-              />
+              >
+                <option value="">Select Supplier</option>
+                {suppliers.map((supplier) => (
+                  <option key={supplier._id} value={supplier.supplierName}>
+                    {supplier.supplierName}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -170,7 +213,7 @@ const PurchaseOrderForm = () => {
                   <th className="px-4 py-2">QTY/CTN</th>
                   <th className="px-4 py-2">WT/CTN</th>
                   <th className="px-4 py-2">CBM/CTN</th>
-                  <th className="px-4 py-2">Order Container</th>
+                  <th className="px-4 py-2">Order-QTY/CTN</th>
                   <th className="px-4 py-2">Actions</th>
                 </tr>
               </thead>

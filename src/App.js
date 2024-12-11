@@ -17,6 +17,8 @@ import MaterialInwardRegister from './components/Sales Executive/Purchase Order/
 import ViewPurchaseOrder from './components/Sales Executive/Purchase Order/ViewPurchaseOrder';
 import Layout from './components/Layout/Layout';
 import InventoryTable from './components/Sales Executive/Purchase Order/InventoryTable';
+import SuppliersTable from './components/Admin/Supplier/SuppliersTable';
+import EditPurchaseOrderForm from './components/Sales Executive/Purchase Order/EditPurchaseOrderForm';
 function App() {
   return (
     <div className="App">
@@ -33,13 +35,21 @@ function App() {
           {/* Orders Page Route (client role only) */}
           <Route path="/orders" element={<PrivateRoute allowedRoles={['client']} element={<OrdersPage />} />} />
           <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']} element={<UserPage />} />} />
+          
 
+          <Route path="/admin/*" element={<PrivateRoute allowedRoles={['admin']} element={<Layout />} />}>
+                <Route path="supplier" element={<SuppliersTable />} />
+                
+          </Route>
+          
           <Route path="/sales-executive/*" element={<PrivateRoute allowedRoles={['sales executive']} element={<Layout />} />}>
             <Route path="purchaseOrder" element={<PurchaseOrderForm />} />
             <Route path="purchaseOrder-details" element={<PurchaseOrdersTable />} />
             <Route path="material-inward/:grnId" element={<MaterialInwardRegister />} />
             <Route path="purchase-order/:referenceNo" element={<ViewPurchaseOrder />} />
             <Route path="warehouse-inventory" element={<InventoryTable />} />
+           
+           
           </Route>
           
           {/* Sales Orders Page Route (sales executive role only) */}

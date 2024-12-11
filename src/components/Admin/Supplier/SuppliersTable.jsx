@@ -2,47 +2,47 @@ import React, { useState, useEffect } from "react";
 import { HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from 'react-router-dom';
+import EditSupplierModal from "./EditSupplierModal";  // Create this modal
+import AddSupplierModal from "./AddSupplierModal";    // Create this modal
+import { API_BASE_URL } from "../../../config"; // Assuming this is already configured
 
-import { API_BASE_URL } from "../../../config"; 
-
-const PurchaseOrdersTable = () => {
-  const navigate = useNavigate();
-  const [purchaseOrders, setPurchaseOrders] = useState([]);
+const SuppliersTable = () => {
+  const [suppliers, setSuppliers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-
-  const handleViewClick = (referenceNo) => {
-    // Navigate to the material inward page with the reference number as the grnId
-    navigate(`/sales-executive/material-inward/${referenceNo}`);
-  };
+  // Modal states for editing and adding suppliers
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   useEffect(() => {
-    fetchPurchaseOrders();
+    fetchSuppliers();
   }, []);
 
-  const fetchPurchaseOrders = async () => {
+  const fetchSuppliers = async () => {
     setLoading(true);
     setError(null);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/purchase-order/purchase-orders`, {
+      const response = await fetch(`${API_BASE_URL}/api/supplier/suppliers`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
       });
       const data = await response.json();
-      if (Array.isArray(data.data)) {
-        setPurchaseOrders(data.data); // Only set purchase orders if the response is an array
+      console.log("Fetched data:", data);
+
+      if (data.suppliers && Array.isArray(data.suppliers)) {
+        setSuppliers(data.suppliers); // Only set suppliers if the response is valid
       } else {
-        setError("Invalid response format. Expected an array.");
+        setError("Invalid response format. Expected an array of suppliers.");
       }
     } catch (error) {
-      setError("An error occurred while fetching purchase orders.");
+      setError("An error occurred while fetching suppliers.");
     } finally {
       setLoading(false);
     }
@@ -52,30 +52,33 @@ const PurchaseOrdersTable = () => {
     setSearchTerm(e.target.value);
   };
 
-  // Filter purchase orders based on multiple fields
-  const filteredOrders = purchaseOrders.filter((order) =>
-    order.referenceNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.fromPerson?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.toPerson?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.createdBy?.username?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter suppliers based on multiple fields
+  const filteredSuppliers = suppliers.filter((supplier) =>
+    supplier.supplierName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.contactPersonName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredSuppliers.slice(indexOfFirstItem, indexOfLastItem);
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
 
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
- 
+  const handleEdit = (supplier) => {
+    setSelectedSupplier(supplier);
+    setIsEditModalOpen(true);
+  };
 
-  const handleDelete = async (orderId) => {
+  const handleDelete = async (supplierId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE_URL}/api/purchase-order/purchase-orders/${orderId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/supplier/suppliers/${supplierId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -83,38 +86,46 @@ const PurchaseOrdersTable = () => {
       });
 
       if (response.ok) {
-        setPurchaseOrders(purchaseOrders.filter((order) => order._id !== orderId));
-        toast.success("Purchase order deleted successfully!");
+        setSuppliers(suppliers.filter((supplier) => supplier._id !== supplierId));
+        toast.success("Supplier deleted successfully!");
       } else {
-        toast.error("Failed to delete purchase order.");
+        toast.error("Failed to delete supplier.");
       }
     } catch (error) {
-      toast.error("An error occurred while deleting the purchase order.");
+      toast.error("An error occurred while deleting the supplier.");
     }
   };
 
-  const handleAddOrder = () => {
-    navigate(`/sales-executive/purchaseOrder`);
+  const handleAddSupplier = () => {
+    setIsAddSupplierModalOpen(true);
   };
 
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedSupplier(null);
+  };
+
+  const closeAddSupplierModal = () => {
+    setIsAddSupplierModalOpen(false);
+  };
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-lg">
       <div className="p-4">
-        {/* Action section: Add Purchase Order & Search */}
+        {/* Action section: Add Supplier & Search */}
         <div className="flex justify-between items-center mb-4">
           <button
-            onClick={handleAddOrder}
+            onClick={handleAddSupplier}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700"
           >
-            Add Purchase Order
+            Add Supplier
           </button>
 
           <input
             type="text"
             value={searchTerm}
             onChange={handleSearch}
-            placeholder="Search Purchase Orders..."
+            placeholder="Search Suppliers..."
             className="p-2 border border-gray-300 rounded-md"
           />
         </div>
@@ -122,7 +133,7 @@ const PurchaseOrdersTable = () => {
         {/* Loading/Error State */}
         {loading ? (
           <div className="text-center py-4">
-            <p>Loading purchase orders...</p>
+            <p>Loading suppliers...</p>
           </div>
         ) : error ? (
           <div className="text-center py-4 text-red-500">
@@ -135,69 +146,46 @@ const PurchaseOrdersTable = () => {
               <thead className="bg-gray-100">
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Reference No
+                    Supplier Name
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created At
+                    Contact Person
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    To Person
+                    Email
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created By
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    View Grn Id
+                    Address
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
-                  
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {/* Loop through the purchase order data */}
-                {currentItems.map((order) => (
-                  <tr key={order._id} className="hover:bg-gray-50 border-b border-gray-200">
-                    <td className="px-4 py-2 text-sm">{order.referenceNo}</td>
-                    <td className="px-4 py-2 text-sm">
-  {new Date(order.createdAt).toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata',  // Set to IST (Indian Standard Time)
-    hour12: true, // Use 12-hour format with AM/PM (Optional, remove if you want 24-hour format)
-    weekday: 'short', // Optional: Include day of the week (e.g., Mon, Tue)
-    year: 'numeric', // Optional: Include full year
-    month: 'short', // Optional: Include abbreviated month name (e.g., Jan, Feb)
-    day: 'numeric', // Show the day of the month
-    hour: 'numeric', // Show the hour
-    minute: 'numeric', // Show minutes
-    second: 'numeric', // Show seconds (Optional)
-  })}
-</td>
-                    <td className="px-4 py-2 text-sm">{order.toPerson}</td>
-                    <td className="px-4 py-2 text-sm">{order.createdBy?.name}</td>
-                    <td className="px-4 py-2 text-sm">{order.status}</td>
-                    <td className="px-4 py-2 text-sm">
+                {/* Loop through the supplier data */}
+                {currentItems.map((supplier) => (
+                  <tr key={supplier._id} className="hover:bg-gray-50 border-b border-gray-200">
+                    <td className="px-4 py-2 text-sm">{supplier.supplierName}</td>
+                    <td className="px-4 py-2 text-sm">{supplier.contactPersonName}</td>
+                    <td className="px-4 py-2 text-sm">{supplier.email}</td>
+                    <td className="px-4 py-2 text-sm">{supplier.address}</td>
+                    <td className="px-4 py-2 text-sm flex space-x-2">
+                      {/* Edit Button */}
                       <button
-                        onClick={() => handleViewClick(order.referenceNo)} // Call navigate on click
+                        onClick={() => handleEdit(supplier)}
                         className="text-blue-500 hover:text-blue-700"
                       >
-                        View GrnId
+                        <HiOutlinePencil size={20} />
                       </button>
-                    </td>
-                    <td className="px-4 py-2 text-sm flex space-x-2">
-                      
                       {/* Delete Button */}
                       <button
-                        onClick={() => handleDelete(order._id)}
+                        onClick={() => handleDelete(supplier._id)}
                         className="text-red-500 hover:text-red-700"
                       >
                         <HiOutlineTrash size={20} />
                       </button>
                     </td>
-                    
                   </tr>
                 ))}
               </tbody>
@@ -209,7 +197,7 @@ const PurchaseOrdersTable = () => {
         <div className="mt-4 flex justify-between items-center">
           <div>
             <span className="text-sm text-gray-500">
-              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, purchaseOrders.length)} of {purchaseOrders.length} orders
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, suppliers.length)} of {suppliers.length} suppliers
             </span>
           </div>
 
@@ -234,11 +222,24 @@ const PurchaseOrdersTable = () => {
         </div>
       </div>
 
-      
-
+      {/* Toast Container for displaying toast messages */}
       <ToastContainer />
+
+      {/* Conditionally render the EditSupplierModal */}
+      {isEditModalOpen && selectedSupplier && (
+        <EditSupplierModal
+          supplier={selectedSupplier}
+          onClose={closeEditModal}
+          onSubmit={fetchSuppliers} // Re-fetch suppliers after update
+        />
+      )}
+
+      {/* Conditionally render the AddSupplierModal */}
+      {isAddSupplierModalOpen && (
+        <AddSupplierModal onClose={closeAddSupplierModal} onSubmit={fetchSuppliers} />
+      )}
     </div>
   );
 };
 
-export default PurchaseOrdersTable;
+export default SuppliersTable;
