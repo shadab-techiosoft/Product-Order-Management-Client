@@ -115,12 +115,25 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
     const updatedItems = [...items];
     updatedItems[index].categoryName = selectedCategory;
     updatedItems[index].itemName = ""; // Reset itemName when category changes
+    updatedItems[index].itemCode = "";
     setItems(updatedItems);
 
     // Update the available items for this specific item row
     const updatedCategoryItems = [...selectedCategoryItems];
     updatedCategoryItems[index] = itemsForCategory; // Set the items for the current item row
     setSelectedCategoryItems(updatedCategoryItems);
+  };
+
+  const handleItemNameChange = (index, event) => {
+    const selectedItemName = event.target.value;
+    const selectedItem = (selectedCategoryItems[index] || []).find(
+      (item) => item.itemName === selectedItemName
+    );
+
+    const updatedItems = [...items];
+    updatedItems[index].itemName = selectedItemName;
+    updatedItems[index].itemCode = selectedItem ? selectedItem.itemCode : ""; // Set the itemCode
+    setItems(updatedItems);
   };
 
   // Helper functions to calculate totals
@@ -198,7 +211,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                     <select
                       name="itemName"
                       value={item.itemName}
-                      onChange={(e) => handleItemChange(index, e)}
+                      onChange={(e) => handleItemNameChange(index, e)}
                       className="w-full p-2 border border-gray-300 rounded"
                     >
                       <option value="">Select Item</option>
@@ -208,6 +221,17 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div className="flex-1">
+                    <label className="block text-gray-700">Item Code</label>
+                    <input
+                      type="text"
+                      name="itemCode"
+                      value={item.itemCode}
+                      readOnly
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
                   </div>
 
                   <div className="flex-1">
