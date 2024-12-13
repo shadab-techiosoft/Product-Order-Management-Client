@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { HiOutlinePencil, HiOutlineTrash ,HiDownload} from "react-icons/hi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from 'react-router-dom';
-
+import ExcelExport from "./ExcelExport";
 import { API_BASE_URL } from "../../../config"; 
 
 const PurchaseOrdersTable = () => {
@@ -155,6 +155,10 @@ const PurchaseOrdersTable = () => {
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
+
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Download Excel
+                  </th>
                   
                 </tr>
               </thead>
@@ -196,6 +200,10 @@ const PurchaseOrdersTable = () => {
                       >
                         <HiOutlineTrash size={20} />
                       </button>
+                    </td>
+                    <td className="px-4 py-2 text-sm ">
+                      {/* Add Download Excel button */}
+                      <ExcelExport purchaseOrderData={order} />
                     </td>
                     
                   </tr>

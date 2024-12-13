@@ -1,8 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
   const [items, setItems] = useState(order.items || []);
-  const [gst, setGst] = useState(order.gst || 0);  // Add state for gst
+  const [gst, setGst] = useState(order.gst || 0); // Add state for GST
+  const [warehouses, setWarehouses] = useState([]); // State to store warehouses based on item name and code
+
+  // Fetch warehouse data based on item details
+  useEffect(() => {
+    const fetchWarehouseData = async () => {
+      try {
+        // Fetch warehouse data for the selected items
+        const token = localStorage.getItem('token');
+        const warehouseResponse = await axios.get('http://localhost:5000/api/warehouse/inventory/warehouse-details', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setWarehouses(warehouseResponse.data.data); // Set warehouse data in state
+      } catch (error) {
+        console.error("Error fetching warehouse data:", error.message);
+      }
+    };
+
+    fetchWarehouseData();
+  }, [order.items]);
 
   // Function to handle price change for a specific item
   const handlePriceChange = (index, value) => {
@@ -23,6 +43,13 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
     setGst(e.target.value);
   };
 
+  // Function to handle changes in category, item name, item code, and qty
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...items];
+    newItems[index][field] = value;
+    setItems(newItems);
+  };
+
   // Calculate total item amount before GST
   const totalItemAmountBeforeGST = items.reduce(
     (total, item) => total + item.price * item.qty, 0
@@ -37,18 +64,22 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
   // Function to handle form submission
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5000/api/orderItem/price/${order._id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,  // Update token if necessary
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          items: items.map(item => ({ 
+        body: JSON.stringify({
+          items: items.map(item => ({
+            categoryName: item.categoryName,
+            itemName: item.itemName,
+            itemCode: item.itemCode,
+            qty: item.qty,
             price: item.price,
             wareHouseName: item.wareHouseName // Include warehouse name in the request
-          })), 
+          })),
           gst: gst // Include GST in the request
         }),
       });
@@ -65,9 +96,19 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
     }
   };
 
+  // Function to get available warehouses for an item
+  const getAvailableWarehouses = (item) => {
+    return warehouses.filter((warehouse) => {
+      const warehouseItem = warehouse.items.find(
+        (warehouseItem) => warehouseItem.itemCode === item.itemCode
+      );
+      return warehouseItem && warehouseItem.quantity > 0;
+    });
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-gray-800 bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full"> {/* Increased max width */}
+      <div className="bg-white rounded-lg shadow-xl p-6 max-w-6xl w-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-gray-800">Edit Order</h2>
           <button 
@@ -78,43 +119,59 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
             </svg>
           </button>
         </div>
-  
+
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-gray-700">Order Items</h3>
           {items.map((item, index) => (
             <div key={index} className="flex gap-4 mb-4 items-center">
-              {/* Display Item Name */}
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-600">Item Name</label>
-                <input
-                  type="text"
-                  value={item.itemName} // Show item name
-                  readOnly // Make it read-only to only display
-                  className="bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-  
-              {/* Display Category Name */}
+              {/* Category Name Input */}
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Category Name</label>
                 <input
+                readOnly
                   type="text"
-                  value={item.categoryName} // Show category name
-                  readOnly // Make it read-only to only display
+                  value={item.categoryName}
+                  onChange={(e) => handleItemChange(index, 'categoryName', e.target.value)}
                   className="bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
-  
+              {/* Item Name Input */}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-600">Item Name</label>
+                <input
+                readOnly
+                  type="text"
+                  value={item.itemName}
+                  onChange={(e) => handleItemChange(index, 'itemName', e.target.value)}
+                  className="bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              
+
+              {/* Item Code Input */}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-600">Item Code</label>
+                <input
+                readOnly
+                  type="text"
+                  value={item.itemCode}
+                  onChange={(e) => handleItemChange(index, 'itemCode', e.target.value)}
+                  className="bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              {/* Quantity Input */}
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Quantity</label>
                 <input
-                  type="text"
-                  value={item.qty} // Show quantity
-                  readOnly // Make it read-only to only display
-                  className="bg-gray-200 mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  type="number"
+                  value={item.qty}
+                  onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
+                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
-  
+
               {/* Price Input */}
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Price</label>
@@ -125,21 +182,37 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
                   className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
-  
-              {/* Warehouse Name Input */}
+
+              {/* Warehouse Dropdown */}
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Warehouse Name</label>
-                <input
-                  type="text"
-                  value={item.wareHouseName || ''} // Show warehouse name or empty if not provided
+                <select
+                  value={item.wareHouseName}
                   onChange={(e) => handleWarehouseChange(index, e.target.value)}
                   className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                />
+                >
+                  <option value="">Select Warehouse</option>
+                  {getAvailableWarehouses(item).map((warehouse) => {
+                    const warehouseItem = warehouse.items.find(i => i.itemCode === item.itemCode);
+                    const isOutOfStock = warehouseItem.quantity < item.qty; // Check if the warehouse has enough stock
+
+                    return (
+                      <option 
+                        key={warehouse._id} 
+                        value={warehouse._id} 
+                        disabled={isOutOfStock} // Disable if out of stock
+                      >
+                        {warehouse._id} - {isOutOfStock ? 'Out of Stock' : `In Stock`} 
+                        ({warehouseItem.quantity}) {/* Always show the warehouse stock quantity */}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
             </div>
           ))}
         </div>
-  
+
         {/* GST Input */}
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-600">GST (%)</label>
@@ -150,35 +223,21 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
-  
-        {/* Total Amount Section */}
-        <div className="mt-6">
-          <div className="text-sm text-gray-700">
-            <p><strong>Total Item Amount (Before GST): </strong><span className="font-semibold">{totalItemAmountBeforeGST.toFixed(2)}</span></p>
-            <p><strong>GST Amount: </strong><span className="font-semibold">{gstAmount.toFixed(2)}</span></p>
-            <p><strong>Total Amount (With GST): </strong><span className="font-semibold text-indigo-600">{totalAmountWithGST.toFixed(2)}</span></p>
-          </div>
+
+        {/* Total Amount */}
+        <div className="mt-4 text-right">
+          <p>Total Amount Before GST: ₹{totalItemAmountBeforeGST}</p>
+          <p>GST Amount: ₹{gstAmount}</p>
+          <p className="font-semibold">Total Amount With GST: ₹{totalAmountWithGST}</p>
         </div>
-  
-        <div className="flex justify-between items-center mt-4">
-          <div className="space-x-4">
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none">
-              Save Changes
-            </button>
-            {/* Cancel Button */}
-            <button 
-              onClick={closeModal}
-              className="px-6 py-2 text-white bg-gray-500 rounded-lg hover:bg-gray-600 focus:outline-none">
-              Cancel
-            </button>
-          </div>
+
+        <div className="mt-6 flex justify-end gap-4">
+          <button onClick={closeModal} className="px-4 py-2 bg-gray-500 text-white rounded-lg">Cancel</button>
+          <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Update Order</button>
         </div>
       </div>
     </div>
   );
-  
 };
 
 export default EditOrderModal;

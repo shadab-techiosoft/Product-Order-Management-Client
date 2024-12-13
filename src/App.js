@@ -16,9 +16,10 @@ import PurchaseOrdersTable from './components/Sales Executive/Purchase Order/Pur
 import MaterialInwardRegister from './components/Sales Executive/Purchase Order/MaterialInwardRegister';
 import ViewPurchaseOrder from './components/Sales Executive/Purchase Order/ViewPurchaseOrder';
 import Layout from './components/Layout/Layout';
-import InventoryTable from './components/Sales Executive/Purchase Order/InventoryTable';
+
 import SuppliersTable from './components/Admin/Supplier/SuppliersTable';
-import EditPurchaseOrderForm from './components/Sales Executive/Purchase Order/EditPurchaseOrderForm';
+import WarehouseInventoryTable from './components/Admin/Warehouse/WarehouseInventoryTable';
+
 function App() {
   return (
     <div className="App">
@@ -39,6 +40,7 @@ function App() {
 
           <Route path="/admin/*" element={<PrivateRoute allowedRoles={['admin']} element={<Layout />} />}>
                 <Route path="supplier" element={<SuppliersTable />} />
+                <Route path="warehouse-inventory" element={<WarehouseInventoryTable />} />
                 
           </Route>
           
@@ -47,7 +49,7 @@ function App() {
             <Route path="purchaseOrder-details" element={<PurchaseOrdersTable />} />
             <Route path="material-inward/:grnId" element={<MaterialInwardRegister />} />
             <Route path="purchase-order/:referenceNo" element={<ViewPurchaseOrder />} />
-            <Route path="warehouse-inventory" element={<InventoryTable />} />
+            <Route path="warehouse-inventory" element={<WarehouseInventoryTable />} />
            
            
           </Route>

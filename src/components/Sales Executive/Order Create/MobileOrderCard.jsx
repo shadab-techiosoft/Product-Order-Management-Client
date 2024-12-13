@@ -94,6 +94,10 @@ const MobileOrderCard = ({
                   <div>{item.qty}</div>
                 </div>
                 <div className="flex justify-between text-sm text-gray-700">
+                  <div className="font-semibold">Warehouse Name</div>
+                  <div>{item.wareHouseName}</div>
+                </div>
+                <div className="flex justify-between text-sm text-gray-700">
                   <div className="font-semibold">Price</div>
                   <div>{`${item.price}`}</div>
                 </div>

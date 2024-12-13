@@ -689,7 +689,7 @@ useEffect(() => {
                   <input
                     readOnly
                     type="text"
-                    value={item.PricePerUnit.toFixed(2)}
+                    value={item.PricePerUnit.toFixed(5)}
                     onChange={(e) =>
                       handleItemChange(
                         index,

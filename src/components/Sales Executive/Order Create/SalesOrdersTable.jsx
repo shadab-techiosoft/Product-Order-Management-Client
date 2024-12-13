@@ -67,18 +67,18 @@ const SalesOrdersTable = () => {
   }, [token]);
 
   const getActionClass = (status) => {
-    switch (status) {
-      case "Pending":
+    switch (status?.toLowerCase()) {
+      case "pending":
         return "bg-yellow-200 text-yellow-800";
-      case "Accept":
+      case "accept":
         return "bg-green-200 text-green-800";
-      case "Reject":
+      case "reject":
         return "bg-red-200 text-red-800";
       default:
         return "bg-gray-200 text-gray-800";
     }
   };
-
+  
   const toggleItemRow = (orderId) => {
     setExpandedItems((prevState) => ({
       ...prevState,
@@ -167,16 +167,18 @@ const SalesOrdersTable = () => {
   // Filter orders by search query
   const filteredOrders = filteredByTab.filter((order) => {
     const queryLower = searchQuery.toLowerCase();
+  
     return (
-      order._id.toLowerCase().includes(queryLower) ||
-      order.status.toLowerCase().includes(queryLower) ||
-      order.items.some(
+      (order._id?.toLowerCase().includes(queryLower)) ||
+      (order.status?.toLowerCase().includes(queryLower)) ||
+      (order.items?.some(
         (item) =>
-          item.categoryName.toLowerCase().includes(queryLower) ||
-          item.itemName.toLowerCase().includes(queryLower)
-      )
+          (item.categoryName?.toLowerCase().includes(queryLower)) ||
+          (item.itemName?.toLowerCase().includes(queryLower))
+      ))
     );
   });
+  
 
   // Sorting orders by status: Pending, Reject, Accept
   const sortedOrders = filteredOrders.sort((a, b) => {
@@ -191,14 +193,11 @@ const SalesOrdersTable = () => {
 
   const orderCounts = {
     all: orders.length,
-    pending: orders.filter((order) => order.status.toLowerCase() === "pending")
-      .length,
-    accept: orders.filter((order) => order.status.toLowerCase() === "accept")
-      .length,
-    reject: orders.filter((order) => order.status.toLowerCase() === "reject")
-      .length,
+    pending: orders.filter((order) => order.status?.toLowerCase() === "pending").length,
+    accept: orders.filter((order) => order.status?.toLowerCase() === "accept").length,
+    reject: orders.filter((order) => order.status?.toLowerCase() === "reject").length,
   };
-
+  
   // Pagination Logic
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
@@ -302,9 +301,10 @@ const SalesOrdersTable = () => {
               <th className="p-4">Product Items</th>
 
               <th className="p-4">Quantity</th>
+              <th className="p-4">Warehouse Name</th>
               <th className="p-4">Price</th>
               <th className="p-4">Total Amount</th>
-              <th className="p-4">Action</th>
+              {/* <th className="p-4">Action</th> */}
             </tr>
           </thead>
           <tbody>
@@ -416,9 +416,10 @@ const SalesOrdersTable = () => {
                       <td className="p-4">{item.itemName}</td>
 
                       <td className="p-4">{item.qty}</td>
+                      <td className="p-4">{item.wareHouseName}</td>
                       <td className="p-4">{`${item.price}`}</td>
                       <td className="p-4">{`${item.totalAmount}`}</td>
-                      <td className="p-4"></td>
+                      {/* <td className="p-4"></td> */}
                     </tr>
                   ))}
               </React.Fragment>

@@ -193,15 +193,28 @@ const CategoriesTable = () => {
                       <td className="px-4 py-2 text-sm">{category.unit}</td>
                       <td className="px-4 py-2 text-sm">
   {category.itemImage ? (
-    <img
-      src={category.itemImage}
-      alt="Item"
-      className="w-10 h-10 object-cover rounded-full" // Set fixed width and height
-    />
+    category.itemImage.includes("drive.google.com") ? (
+      // If it's a Google Drive link, use the thumbnail link to display the image
+      <img
+        src={`https://drive.google.com/thumbnail?id=${category.itemImage.split('id=')[1]}`}
+        alt="Item"
+        className="w-10 h-10 object-cover rounded-full"
+      />
+    ) : (
+      // If it's not a Google Drive link, use the URL as is
+      <img
+        src={category.itemImage}
+        alt="Item"
+        className="w-10 h-10 object-cover rounded-full"
+      />
+    )
   ) : (
     <span>No image available</span>
   )}
 </td>
+
+
+
                       <td className="px-4 py-2 text-sm">{category.pcsPerCtn || "N/A"}</td>
                       <td className="px-4 py-2 text-sm">{category.wtPerCtn || "N/A"}</td>
                       <td className="px-4 py-2 text-sm">{category.cbmPerCtn || "N/A"}</td>

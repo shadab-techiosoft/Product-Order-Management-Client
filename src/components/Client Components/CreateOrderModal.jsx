@@ -5,7 +5,7 @@ import { ToastContainer, toast } from "react-toastify"; // Import toast
 import "react-toastify/dist/ReactToastify.css";
 
 const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
-  const [items, setItems] = useState([{ categoryName: '', itemName: '', qty: 1 }]);
+  const [items, setItems] = useState([{ categoryName: '', itemName: '', itemCode: '', qty: 1 }]);
   const [categories, setCategories] = useState([]);
   const [categoryItems, setCategoryItems] = useState([]); // Store item options based on category
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
   const handleAddItem = () => {
     const lastItem = items[items.length - 1];
     if (lastItem.categoryName.trim() !== '' && lastItem.itemName.trim() !== '') {
-      setItems([...items, { categoryName: '', itemName: '', qty: 1 }]);
+      setItems([...items, { categoryName: '', itemName: '', itemCode: '', qty: 1 }]);
     } else {
       alert('Category Name and Item Name must be filled to add a new item.');
     }
@@ -41,13 +41,13 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
     newItems[index][field] = value;
     setItems(newItems);
   };
+
   const handleRemoveItem = (index) => {
     const newItems = items.filter((item, i) => i !== index); // Remove the item at the given index
     setItems(newItems);
   };
 
   const handleSubmit = async () => {
-    const token = localStorage.getItem("token");
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/orderItem/create`, {
@@ -85,12 +85,25 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
     const updatedItems = [...items];
     updatedItems[index].categoryName = selectedCategory;
     updatedItems[index].itemName = ""; // Reset itemName only for the current item
+    updatedItems[index].itemCode = ""; // Reset itemCode when category changes
     setItems(updatedItems);
 
     // Update the category items for the selected category for the current item
     const updatedCategoryItems = [...categoryItems];
     updatedCategoryItems[index] = itemsForCategory;
     setCategoryItems(updatedCategoryItems);
+  };
+
+  // Handle item selection and automatically fill item code
+  const handleItemNameChange = (index, event) => {
+    const selectedItem = event.target.value;
+    const category = categories.find(cat => cat.categoryName === items[index].categoryName);
+    const item = category ? category.items.find(item => item.itemName === selectedItem) : null;
+
+    const updatedItems = [...items];
+    updatedItems[index].itemName = selectedItem;
+    updatedItems[index].itemCode = item ? item.itemCode : ""; // Automatically fill itemCode based on itemName
+    setItems(updatedItems);
   };
 
   return (
@@ -116,7 +129,7 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
             <select
               name="itemName"
               value={item.itemName}
-              onChange={(e) => handleInputChange(index, 'itemName', e.target.value)}
+              onChange={(e) => handleItemNameChange(index, e)}
               className="w-full p-2 border border-gray-300 rounded"
             >
               <option value="">Select Item</option>
@@ -126,6 +139,14 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
                 </option>
               ))}
             </select>
+            <input
+              type="text"
+              placeholder="Item Code"
+              value={item.itemCode}
+              onChange={(e) => handleInputChange(index, 'itemCode', e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              disabled
+            />
             <input
               type="number"
               placeholder="Quantity"
@@ -140,7 +161,6 @@ const CreateOrderModal = ({ closeModal, onOrderCreated }) => {
               Remove
             </button>
             {index === items.length - 1 && (
-              
               <button
                 onClick={handleAddItem}
                 className="flex-none bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
