@@ -29,27 +29,34 @@ export default function MaterialInwardRegister() {
   const [warehouseNames, setWarehouseNames] = useState([]);
 
   // Fetch warehouse names on component mount
-useEffect(() => {
-  const fetchWarehouseNames = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5000/api/warehouse/inventory/warehousename", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  useEffect(() => {
+    const fetchWarehouseNames = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-      if (response.status === 200) {
-        setWarehouseNames(response.data.data);  // Set the fetched warehouse names in the state
+        // Make the GET request to fetch warehouse names
+        const response = await axios.get("http://localhost:5000/api/warehouse/get-warehouse/name", {
+          headers: {
+            Authorization: `Bearer ${token}`, // Authorization header with token
+          },
+        });
+
+        if (response.status === 200) {
+          // Assuming response.data.data is the array of warehouses
+          const warehouseList = response.data.data;
+          
+          // Extract warehouse names from the response
+          const names = warehouseList.map(warehouse => warehouse.warehouseName);
+          setWarehouseNames(names); // Set the warehouse names to state
+        }
+      } catch (err) {
+        console.error("Error fetching warehouse names:", err);
+        setError("Failed to fetch warehouse names."); // Set error message if request fails
       }
-    } catch (err) {
-      console.error("Error fetching warehouse names:", err);
-      setError("Failed to fetch warehouse names.");
-    }
-  };
+    };
 
-  fetchWarehouseNames();
-}, []);
+    fetchWarehouseNames(); // Call the function to fetch warehouse names
+  }, []); 
    // Function to update the purchase order status
    const updateStatus = async (newStatus) => {
     setLoading(true);

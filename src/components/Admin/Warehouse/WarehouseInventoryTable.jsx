@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { API_BASE_URL } from "../../../config"; // Assuming this is already configured
-
+import AddInventoryModal from "./AddInventoryModal"; // Import the modal
+import AddWarehouseModal from "./AddWarehouseModal";
+import { toast, ToastContainer } from "react-toastify";  
+import "react-toastify/dist/ReactToastify.css";
+import { HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import axios from 'axios';
+import EditInventoryModal from "./EditInventoryModal";
 const WarehouseInventoryTable = () => {
   const [items, setItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -8,18 +14,40 @@ const WarehouseInventoryTable = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50);
+  const [showAddInventoryModal, setShowAddInventoryModal] = useState(false);
+  const [showAddWarehouseModal, setShowAddWarehouseModal] = useState(false);
+  const [warehouses, setWarehouses] = useState([]); // For warehouse data
+  const [warehouseLoading, setWarehouseLoading] = useState(true); // To track loading state of warehouse data
+  const [isEditing, setIsEditing] = useState(false);
+  const [warehouseToEdit, setWarehouseToEdit] = useState(null);
+  const [itemToEdit, setItemToEdit] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   useEffect(() => {
     fetchItems();
+    fetchWarehouses();
   }, []);
 
   const fetchItems = async () => {
     setLoading(true);
     setError(null);
+    
+    // Assuming token is stored in localStorage or context or any other place
+    const token = localStorage.getItem("token");  // Replace this with your token retrieval logic
+    
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, // Add token if exists
+    };
+    
     try {
-      const response = await fetch(`${API_BASE_URL}/api/purchase-order/items/grouped-by-warehouse`);
+      const response = await fetch(`${API_BASE_URL}/api/warehouse/inventory`, {
+        method: "GET",
+        headers: headers, // Attach the headers
+      });
+  
       const data = await response.json();
       console.log("Fetched data:", data);
-
+  
       if (data.data && Array.isArray(data.data)) {
         setItems(data.data); // Only set items if the response contains a data array
       } else {
@@ -32,6 +60,36 @@ const WarehouseInventoryTable = () => {
     }
   };
 
+  // Fetch warehouses from the API
+  const fetchWarehouses = async () => {
+    setWarehouseLoading(true);
+    const token = localStorage.getItem("token"); // Get token from localStorage
+
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/warehouse/get-warehouse/name`, {
+        method: "GET",
+        headers: headers,
+      });
+
+      const data = await response.json();
+
+      if (data.data && Array.isArray(data.data)) {
+        setWarehouses(data.data); // Set the warehouse data
+      } else {
+        setError("Failed to fetch warehouse data.");
+      }
+    } catch (error) {
+      setError("An error occurred while fetching warehouse data.");
+    } finally {
+      setWarehouseLoading(false);
+    }
+  };
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -40,7 +98,7 @@ const WarehouseInventoryTable = () => {
   const filteredItems = items.filter((item) =>
     item.itemCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.itemCategory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (item.warehouseName && item.warehouseName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -54,20 +112,146 @@ const WarehouseInventoryTable = () => {
     setCurrentPage(pageNumber);
   };
 
+  const handleAddInventory = async (newItems) => {
+    try {
+      if (Array.isArray(newItems)) {
+        setItems((prevItems) => [...prevItems, ...newItems]);
+      }
+      await fetchItems();
+    } catch (error) {
+      // Error handling without toast or console message
+    }
+  };
+
+  const handleAddWarehouse = (newWarehouse) => {
+    fetchWarehouses()
+  };
+
+
+
+  // Delete section
+
+  const handleEditInventory = (item) => {
+    setItemToEdit(item);
+    setShowEditModal(true);
+  };
+  
+  const handleDeleteInventory = async (item) => {
+    const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+    const itemId = item._id; // Use the MongoDB _id for the item
+  
+    if (!itemId || !token) {
+      toast.error("Item ID or token is missing.");
+      return;
+    }
+  
+    try {
+      // Make the DELETE request to the API using the _id
+      const response = await axios.delete(
+        `${API_BASE_URL}/api/warehouse/inventory/${itemId}`, 
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`, // Add the token in the header
+          }
+        }
+      );
+  
+      if (response.status === 200 || response.status === 204) {
+        toast.success("Item deleted successfully.");
+        
+        // Remove the item from the state (update the UI)
+        setItems((prevItems) => prevItems.filter((i) => i._id !== itemId));
+      } else {
+        toast.error("Failed to delete item.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting the item.");
+      console.error("Delete error:", error);
+    }
+  };
+  
+  
+  
+  const handleEditWarehouse = (warehouse) => {
+    setWarehouseToEdit(warehouse);
+    setIsEditing(true);
+    setShowAddWarehouseModal(true);
+    
+  };
+  
+  
+  const handleDeleteWarehouse = async (warehouseId) => {
+    const token = localStorage.getItem("token");
+  
+    if (!warehouseId || !token) return;
+  
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/warehouse/new-warehouse/${warehouseId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      if (response.status === 200 || response.status === 204) {
+        toast.success("Warehouse deleted");
+        setWarehouses((prev) => prev.filter((w) => w._id !== warehouseId)); // Ensure filtering by _id
+      } else {
+        toast.error("Failed to delete warehouse");
+      }
+    } catch (error) {
+      toast.error("Error deleting warehouse");
+    }
+  };
+
+  const handleUpdateWarehouse =async (updatedWarehouse) => {
+    setWarehouses((prev) =>
+      prev.map((warehouse) =>
+        warehouse._id === updatedWarehouse._id ? updatedWarehouse : warehouse
+      )
+      
+    );
+    await fetchItems();
+  };
+
+  const handleUpdateInventory = (updatedItem) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.itemCode === updatedItem.itemCode ? updatedItem : item
+      )
+    );
+    setShowEditModal(false);
+  };
+  
+
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow-lg">
-      <div className="p-4">
+    <div className="flex flex-col sm:flex-row sm:space-x-4">
+      {/* Left side: Inventory Table */}
+      <div className="flex-1 overflow-x-auto bg-white rounded-lg shadow-lg p-4">
         {/* Search Bar */}
-        <div className="mb-4">
+        <div className="mb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <input
             type="text"
             value={searchTerm}
             onChange={handleSearch}
             placeholder="Search Inventory..."
-            className="p-2 border border-gray-300 rounded-md w-full"
+            className="p-2 border border-gray-300 rounded-md mb-4 sm:mb-0 sm:w-3/4"
           />
+          {/* Add Inventory and Add Warehouse Buttons */}
+          <div className="flex flex-col sm:flex-row sm:space-x-4 sm:ml-4">
+            <button
+              onClick={() => setShowAddInventoryModal(true)}
+              className="px-4 py-1 bg-green-500 text-white rounded-md mb-2 sm:mb-0 w-auto sm:w-32"
+            >
+              + Inventory
+            </button>
+            <button
+              onClick={() => setShowAddWarehouseModal(true)}
+              className="px-4 py-1 bg-blue-500 text-white rounded-md w-auto sm:w-32"
+            >
+              + Warehouse
+            </button>
+          </div>
         </div>
-
+  
         {/* Loading/Error State */}
         {loading ? (
           <div className="text-center py-4">
@@ -75,7 +259,7 @@ const WarehouseInventoryTable = () => {
           </div>
         ) : error ? (
           <div className="text-center py-4 text-red-500">
-            <p>{error}</p>
+            <p>No Item Found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -83,8 +267,11 @@ const WarehouseInventoryTable = () => {
             <table className="min-w-full table-auto">
               <thead className="bg-gray-100">
                 <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Warehouse Name
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Item Code
@@ -93,46 +280,45 @@ const WarehouseInventoryTable = () => {
                     Item Name
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total Quantity
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Item Image
-                  </th>
+                  Actions
+                </th>
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {/* Loop through the item data */}
                 {currentItems.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 border-b border-gray-200">
-                    <td className="px-4 py-2 text-sm">{item.warehouseName || "No Warehouse"}</td>
+                    {item.warehouseName ? item.warehouseName.charAt(0).toUpperCase() + item.warehouseName.slice(1).toLowerCase() : "No Warehouse"}
+                    <td className="px-4 py-2 text-sm">{item.itemCategory}</td>
                     <td className="px-4 py-2 text-sm">{item.itemCode}</td>
                     <td className="px-4 py-2 text-sm">{item.itemName}</td>
-                    <td className="px-4 py-2 text-sm">{item.category}</td>
-                    
-                    <td className="px-4 py-2 text-sm">{item.totalQuantity}</td>
-                    <td className="px-4 py-2 text-sm">
-                      <img src={item.itemImage} alt={item.itemName} className="w-16 h-16 object-cover rounded-md" />
-                    </td>
+                    <td className="px-4 py-2 text-sm">{item.quantity}</td>
+                    <td className="px-4 py-2 text-sm flex space-x-2">
+                    <button onClick={() => handleEditInventory(item)} className="text-blue-500 hover:text-blue-700">
+                      <HiOutlinePencil />
+                    </button>
+                    <button onClick={() => handleDeleteInventory(item)} className="text-red-500 hover:text-red-700">
+                      <HiOutlineTrash />
+                    </button>
+                  </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+  
         {/* Pagination */}
         <div className="mt-4 flex justify-between items-center">
           <div>
             <span className="text-sm text-gray-500">
-              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, items.length)} of {items.length} users
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, items.length)} of {items.length} items
             </span>
           </div>
-
+  
           <div className="flex space-x-2">
-            {/* Previous Page Button */}
             <button
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
@@ -140,7 +326,6 @@ const WarehouseInventoryTable = () => {
             >
               Prev
             </button>
-            {/* Next Page Button */}
             <button
               onClick={() => paginate(currentPage + 1)}
               disabled={currentPage === totalPages}
@@ -151,8 +336,71 @@ const WarehouseInventoryTable = () => {
           </div>
         </div>
       </div>
+  
+      {/* Right side: Warehouse Details Table */}
+      <div className="w-full sm:w-1/3 overflow-x-auto bg-white rounded-lg shadow-lg p-4 mt-4 sm:mt-0">
+        <h3 className="text-lg font-semibold mb-4">Warehouse Details</h3>
+        {warehouseLoading ? (
+          <p>Loading warehouses...</p>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Warehouse Name</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white">
+              {warehouses.map((warehouse, index) => (
+                <tr key={index} className="hover:bg-gray-50 border-b border-gray-200">
+                  <td className="px-4 py-2 text-sm">{warehouse.warehouseName.charAt(0).toUpperCase() + warehouse.warehouseName.slice(1).toLowerCase()}</td>
+                  <td className="px-4 py-2 text-sm">{warehouse.address}</td>
+                  <td className="px-4 py-2 text-sm flex space-x-2">
+                  <button onClick={() => handleEditWarehouse(warehouse)} className="text-blue-500 hover:text-blue-700">
+                    <HiOutlinePencil />
+                  </button>
+                  <button onClick={() => handleDeleteWarehouse(warehouse._id)} className="text-red-500 hover:text-red-700">
+                    <HiOutlineTrash />
+                  </button>
+                </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+  
+      
+      {/* Modals for Add Inventory and Add Warehouse */}
+      {showAddInventoryModal && (
+        <AddInventoryModal
+          onClose={() => setShowAddInventoryModal(false)}
+          onAddInventory={handleAddInventory}
+        />
+      )}
+  
+      {showAddWarehouseModal && (
+        <AddWarehouseModal
+          onClose={() => setShowAddWarehouseModal(false)}
+          onAddWarehouse={handleAddWarehouse}
+          onUpdateWarehouse={handleUpdateWarehouse}
+          warehouseToEdit={warehouseToEdit}
+          isEditing={isEditing}
+        />
+      )}
+
+{showEditModal && (
+        <EditInventoryModal
+          item={itemToEdit}
+          onClose={() => setShowEditModal(false)}
+          onUpdate={handleUpdateInventory}
+        />
+      )}
+      <ToastContainer />
     </div>
   );
+  
 };
 
 export default WarehouseInventoryTable;

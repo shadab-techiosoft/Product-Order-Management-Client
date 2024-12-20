@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import EditModal from "./EditModal"; // Assuming EditModal is in the same folder
 import { API_BASE_URL } from "../../../config";
@@ -92,8 +92,7 @@ const CategoriesTable = () => {
     setIsModalOpen(true);
   };
   const handleAddItems = (items) => {
-    // You can send the items to the API here
-    console.log("Items to add:", items);
+    
     setCategories((prevCategories) => [...prevCategories, ...items]);
   };
 
@@ -108,26 +107,37 @@ const CategoriesTable = () => {
 
   const handleDelete = async (categoryId) => {
     if (!categoryId) {
-        toast.error("Category ID is missing.");
-        return;
+      toast.error("Category ID is missing.");
+      return;
     }
-
+  
     try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
         const data = await response.json();
+        // Show success toast
         toast.success("Category deleted successfully!");
-        // Check if response contains success field
-       
+        
+        // Remove the deleted category from the local state
+        setCategories((prevCategories) =>
+          prevCategories.filter((category) => category._id !== categoryId)
+        );
+      } else {
+        const data = await response.json();
+        toast.error(data.message || "Failed to delete category.");
+      }
     } catch (error) {
-        toast.error("An error occurred while deleting the category.");
+      toast.error("An error occurred while deleting the category.");
     }
-};
+  };
+  
 
 
 
@@ -270,6 +280,7 @@ const CategoriesTable = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
       {isAddItemModalOpen && (
         <AddItemModal
           onClose={() => setIsAddItemModalOpen(false)}

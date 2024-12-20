@@ -20,6 +20,7 @@ const Layout = () => {
       <div className={`flex-1 p-4 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         {/* Navbar */}
         <Navbar toggleSidebar={toggleSidebar} />
+        <br />
         
         {/* Render the page-specific content here */}
         <div className="content">

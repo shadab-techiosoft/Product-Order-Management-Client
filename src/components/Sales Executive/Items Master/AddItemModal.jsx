@@ -121,7 +121,7 @@ const AddItemModal = ({ onClose, onAddItems }) => {
         "001",
         "Electronics",
         "Smartphone",
-        "Piece",
+        "Box",
         10,
         5,
         0.1,
@@ -131,7 +131,7 @@ const AddItemModal = ({ onClose, onAddItems }) => {
         "002",
         "Furniture",
         "Chair",
-        "Piece",
+        "Pieces",
         2,
         7,
         0.3,
@@ -204,20 +204,48 @@ const AddItemModal = ({ onClose, onAddItems }) => {
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Unit
-                </label>
-                <select
-                  name="unit"
-                  value={item.unit}
-                  onChange={(e) => handleChange(index, e)}
-                  className="w-full p-2 border border-gray-300 rounded"
-                >
-                  <option value="">Select Unit</option>
-                  <option value="Box">Box</option>
-                  <option value="Pieces">Pieces</option>
-                </select>
-              </div>
+  <label className="block text-sm font-medium text-gray-700">
+    Unit
+  </label>
+  <div className="relative">
+    <input
+      type="text"
+      name="unit"
+      value={item.unit}
+      onChange={(e) => handleChange(index, e)}
+      className="w-full p-2 pl-3 pr-10 border border-gray-300 rounded"
+      placeholder="Enter Unit (e.g., Box, Pieces)"
+    />
+    {/* Dropdown icon */}
+    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-5 h-5 text-gray-500"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fillRule="evenodd"
+          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </div>
+    {/* Dropdown select */}
+    <select
+      name="unit"
+      value={item.unit}
+      onChange={(e) => handleChange(index, e)}
+      className="absolute left-0 top-0 w-full h-full opacity-0 cursor-pointer"
+    >
+      <option value="">Select Unit</option>
+      <option value="Box">Box</option>
+      <option value="Pieces">Pieces</option>
+    </select>
+  </div>
+</div>
+
 
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700">

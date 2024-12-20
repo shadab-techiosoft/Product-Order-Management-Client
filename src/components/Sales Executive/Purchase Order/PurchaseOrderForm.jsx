@@ -183,7 +183,7 @@ const PurchaseOrderForm = () => {
             </div>
 
             <div>
-              <label className="block text-base font-medium text-gray-700">To Person</label>
+              <label className="block text-base font-medium text-gray-700">To Supplier</label>
               <select
                 value={toPerson}
                 onChange={(e) => setToPerson(e.target.value)}
