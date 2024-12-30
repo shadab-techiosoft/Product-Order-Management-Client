@@ -19,7 +19,7 @@ const ClientSidebar = ({ isOpen, toggleSidebar }) => {
         ${isOpen ? 'transform-none' : 'transform -translate-x-full'} 
         ${isOpen ? 'w-64' : 'w-16'}`}
     >
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between my-8 p-3">
         <div className={`${isOpen ? 'block' : 'hidden'} text-2xl font-bold`}>SMART ITBOX</div>
         <button
           className="md:hidden text-white"

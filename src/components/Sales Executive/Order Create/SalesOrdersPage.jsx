@@ -9,21 +9,28 @@ const SalesOrdersPage = () => {
 
   // Function to toggle sidebar visibility
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    setIsSidebarOpen((prevState) => !prevState);
   };
 
   return (
     <div className="flex">
-      {/* Pass the isSidebarOpen state and toggleSidebar function as props */}
+      {/* Sidebar Component */}
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       
-      {/* Main content - Adjust the margin when sidebar is open */}
-      <div className={`flex-1 p-4 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        {/* Pass the toggleSidebar function to the Navbar */}
+      {/* Main Content Area */}
+      <div
+        className={`flex-1 p-4 transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? 'ml-64' : 'ml-0'
+        }`}
+      >
+        {/* Navbar Component */}
         <Navbar toggleSidebar={toggleSidebar} />
-        <br />
-        <div>
+        
+        <div className="mt-6">
+          {/* Sales Orders Table */}
           <SalesOrdersTable />
+          
+          {/* Uncomment when Pagination is ready */}
           {/* <Pagination /> */}
         </div>
       </div>

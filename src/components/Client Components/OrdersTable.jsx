@@ -3,7 +3,7 @@ import MobileOrderCard from "./MobileOrderCard";
 import CreateOrderModal from "./CreateOrderModal"; // Import the CreateOrderModal component
 import { ToastContainer, toast } from "react-toastify"; // Import toast notifications
 import "react-toastify/dist/ReactToastify.css"; // Import toast CSS
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import EditOrderModal from "./EditOrderModal";
 import { API_BASE_URL } from "../../config";
 import SearchBar from "./SearchBar";
@@ -276,12 +276,12 @@ const [orderToReject, setOrderToReject] = useState(null); // Order to be rejecte
       <ToastContainer />
       <div className="flex justify-between mb-4">
         <h2 className="text-2xl font-semibold">Orders</h2>
-        <button
-          onClick={openModal}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Create Order
-        </button>
+       <button
+                 onClick={openModal}
+                 className="bg-indigo-500 flex items-center gap-2 text-white px-4 py-2 rounded-xl hover:bg-indigo-400"
+               >
+               <FaPlus/>  Create Order
+               </button>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-between mb-4">

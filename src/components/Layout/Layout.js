@@ -12,7 +12,7 @@ const Layout = () => {
   };
 
   return (
-    <div className="flex">
+    <div className="flex ">
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       

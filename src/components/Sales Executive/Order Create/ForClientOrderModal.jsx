@@ -362,6 +362,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify"; // Import toast
 import "react-toastify/dist/ReactToastify.css";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ForClientOrderModal = ({ isOpen, closeModal }) => {
   const [items, setItems] = useState([
@@ -371,6 +372,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
   const [selectedCategoryItems, setSelectedCategoryItems] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -402,10 +404,10 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
         console.error("Error fetching warehouse data:", error.message);
       }
     };
-  
+
     fetchWarehouseData();
   }, [token]);
-  
+
   // Fetch client and category data when the component mounts
   useEffect(() => {
     const fetchData = async () => {
@@ -506,18 +508,18 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
     const selectedItem = (selectedCategoryItems[index] || []).find(
       (item) => item.itemName === selectedItemName
     );
-  
+
     const updatedItems = [...items];
     updatedItems[index].itemName = selectedItemName;
     updatedItems[index].itemCode = selectedItem ? selectedItem.itemCode : ""; // Set itemCode
-  
+
     setItems(updatedItems);
-  
+
     // Filter the warehouses that have the selected item
     const availableWarehouses = warehouses.filter((warehouse) =>
       warehouse.items.some((item) => item.itemName === selectedItemName)
     );
-  
+
     const filteredWarehouses = availableWarehouses.map((warehouse) => {
       const item = warehouse.items.find((item) => item.itemName === selectedItemName);
       return {
@@ -525,47 +527,47 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
         itemQuantity: item.quantity, // Add item quantity
       };
     });
-  
+
     // Update the warehouse options dynamically for the selected item
     setSelectedWarehouses(filteredWarehouses);
   };
-  
+
   const handleWarehouseChange = (index, event) => {
     const selectedWarehouseName = event.target.value;
-  
+
     // Find the selected warehouse object
     const selectedWarehouse = selectedWarehouses.find(
       (warehouse) => warehouse._id === selectedWarehouseName
     );
-  
+
     const updatedItems = [...items];
     updatedItems[index].wareHouseName = selectedWarehouseName;
-  
+
     setItems(updatedItems);
   };
-  
-  
+
+
   const handleWarehouseDropdown = (index) => {
     const item = items[index];
-    
+
     // Filter warehouses based on the availability and the correct item
     return selectedWarehouses.map((warehouse) => {
       // Find the item in the current warehouse
       const warehouseItem = warehouse.items.find(
         (warehouseItem) => warehouseItem.itemName === item.itemName
       );
-      
+
       if (!warehouseItem) {
         // If the item doesn't exist in the warehouse, skip this warehouse
         return null;
       }
-  
+
       // Determine if the warehouse has enough stock
       const isInsufficient = warehouseItem.quantity < item.qty;
       const warehouseStatus = isInsufficient
         ? `Out of Stock (Only ${warehouseItem.quantity} left)`
         : `In Stock (${warehouseItem.quantity})`;
-  
+
       return (
         <option
           key={warehouse._id}
@@ -580,11 +582,11 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
       );
     }).filter(Boolean); // Filter out any null values (warehouses where the item is not found)
   };
-  
-  
-  
-  
-    
+
+
+
+
+
 
   // Helper functions to calculate totals
   function calculateTotalBeforeGST() {
@@ -615,43 +617,65 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
     isOpen && (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div
-          className="bg-white p-6 rounded-lg shadow-lg w-full max-w-6xl overflow-y-auto"
+          className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl overflow-y-auto"
           style={{ maxHeight: "90vh" }}
         >
           <h2 className="text-2xl font-bold mb-4">Create Order</h2>
           <form onSubmit={handleSubmit(onSubmit)}>
+          
+
             <div className="mb-4">
               <label className="block text-gray-700 mb-2">Client</label>
               <select
                 {...register("clientId", { required: "Client is required" })}
-                className="w-full p-2 border border-gray-300 rounded"
+                className="w-full py-4 rounded-xl px-3 border border-indigo-300  focus:ring-1 focus:ring-indigo-500 focus:outline-none"
               >
-                <option value="">Select Client</option>
+                <option value="" className="bg-white text-indigo-500">
+                  Select Client
+                </option>
                 {clients.map((client) => (
-                  <option key={client._id} value={client.user}>
+                  <motion.option
+                    key={client._id}
+                    value={client.user}
+                    className="bg-white text-gray-500 hover:bg-indigo-500 hover:text-white"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
                     {client.firmName} - {client.contactPerson}
-                  </option>
+                  </motion.option>
                 ))}
               </select>
             </div>
 
+
             {/* Item Fields */}
             {items.map((item, index) => (
-              <div key={index} className="mb-4">
-                <div className="flex space-x-4">
+              <div key={index} className="mb-4 ">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-2">
                   <div className="flex-1">
                     <label className="block text-gray-700">Category</label>
                     <select
                       name="categoryName"
                       value={item.categoryName}
                       onChange={(e) => handleCategoryChange(index, e)}
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className="w-full rounded-xl py-4 px-3 border border-indigo-300  focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                     >
-                      <option value="">Select Category</option>
+                      <option value="" className="bg-white text-indigo-500">Select Category</option>
                       {categories.map((category) => (
-                        <option key={category.categoryName} value={category.categoryName}>
+                        <motion.option
+                       
+                        className="bg-white text-gray-500 hover:bg-indigo-500 hover:text-white"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                        key={category.categoryName} value={category.categoryName}>
                           {category.categoryName}
-                        </option>
+                        </motion.option>
                       ))}
                     </select>
                   </div>
@@ -662,9 +686,9 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                       name="itemName"
                       value={item.itemName}
                       onChange={(e) => handleItemNameChange(index, e)}
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className="w-full rounded-xl py-4 px-3 border border-indigo-300  focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                     >
-                      <option value="">Select Item</option>
+                      <option value="" className="bg-white text-indigo-500">Select Item</option>
                       {(selectedCategoryItems[index] || []).map((itemOption) => (
                         <option key={itemOption.itemCode} value={itemOption.itemName}>
                           {itemOption.itemName}
@@ -680,7 +704,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                       name="itemCode"
                       value={item.itemCode}
                       readOnly
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className="w-full rounded-xl py-4 px-3 border border-indigo-300  focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                     />
                   </div>
 
@@ -691,7 +715,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                       name="qty"
                       value={item.qty}
                       onChange={(e) => handleItemChange(index, e)}
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className="w-full rounded-xl py-4 px-3 border border-indigo-300  focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                     />
                   </div>
 
@@ -702,22 +726,29 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
                       name="price"
                       value={item.price}
                       onChange={(e) => handleItemChange(index, e)}
-                      className="w-full p-2 border border-gray-300 rounded"
+                      className="w-full rounded-xl py-4 px-3 border border-indigo-300  focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                     />
                   </div>
 
                   <div className="flex-1">
-  <label className="block text-gray-700">Warehouse Name</label>
-  <select
-    name="wareHouseName"
-    value={item.wareHouseName}
-    onChange={(e) => handleWarehouseChange(index, e)}
-    className="w-full p-2 border border-gray-300 rounded"
-  >
-    <option value="">Select Warehouse</option>
-    {handleWarehouseDropdown(index)}
-  </select>
-</div>
+                    <label className="block text-gray-700">Warehouse Name</label>
+                    <select
+                      name="wareHouseName"
+                      value={item.wareHouseName}
+                      onChange={(e) => handleWarehouseChange(index, e)}
+                    className="w-full rounded-xl py-4 px-3 border border-indigo-300  focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                    >
+                      <motion.option 
+                       className="bg-white text-gray-500 hover:bg-indigo-500 hover:text-white"
+                       initial={{ opacity: 0, y: -10 }}
+                       animate={{ opacity: 1, y: 0 }}
+                       exit={{ opacity: 0, y: -10 }}
+                       whileHover={{ scale: 1.05 }}
+                       transition={{ type: "spring", stiffness: 300 }}
+                      value="" >Select Warehouse</motion.option>
+                      {handleWarehouseDropdown(index)}
+                    </select>
+                  </div>
 
 
                 </div>
@@ -749,7 +780,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
               <label className="block text-gray-700 mb-2">GST Percentage</label>
               <input
                 type="number"
-                className="w-full p-2 border border-gray-300 rounded"
+                className="w-full rounded-xl py-4 px-3 border border-indigo-300  focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                 {...register("gst", { valueAsNumber: true, defaultValue: 0 })} // Set default value to 0
               />
             </div>
@@ -777,7 +808,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
             </div>
 
             {/* Submit and Cancel Buttons */}
-            <div className="flex justify-between mt-4">
+            <div className="flex justify-end gap-4  py-4 border-t border-gray-600">
               <button
                 type="button"
                 onClick={handleCloseModal}
@@ -787,7 +818,7 @@ const ForClientOrderModal = ({ isOpen, closeModal }) => {
               </button>
               <button
                 type="submit"
-                className="bg-blue-500 text-white rounded-lg py-2 px-6 flex items-center justify-center"
+                className="bg-indigo-500 text-white rounded-lg py-2 px-6 flex items-center justify-center"
                 disabled={loading} // Disable button if loading
               >
                 {loading ? (

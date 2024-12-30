@@ -38,34 +38,66 @@ const ForgotPasswordModal = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h2 className="text-lg font-semibold">Forgot Password</h2>
+      <div className="relative bg-white p-8 rounded-lg w-full max-w-md mx-4 text-center shadow-lg">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-[-15px] right-[-10px] bg-indigo-500 text-white rounded-full p-2 hover:bg-indigo-700"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        <div className="flex justify-center mb-4">
+          <div className="w-12 h-12 bg-purple-100 flex items-center justify-center rounded-full">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-indigo-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 11c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2zm0 0c-4.418 0-8 1.79-8 4v1h16v-1c0-2.21-3.582-4-8-4zm0 7a9 9 0 100-18 9 9 0 000 18z"
+              />
+            </svg>
+          </div>
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Reset your password</h2>
+        <p className="text-sm text-gray-600 mb-6">
+          Forgot your password? Please enter your email and we’ll send you a 4-digit code.
+        </p>
         <form onSubmit={handleForgotPassword}>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            className="w-full p-2 mt-4 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-purple-200 focus:outline-none"
             required
           />
-          {error && <p className="text-red-600 mt-2">{error}</p>}
-          <div className="flex justify-between items-center mt-4">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md"
-              disabled={loading}
-            >
-              {loading ? "Sending..." : "Send Reset Link"}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Close
-            </button>
-          </div>
+          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+          <button
+            type="submit"
+            className="w-full mt-4 bg-indigo-500 text-white p-3 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Send Reset Link"}
+          </button>
         </form>
       </div>
     </div>

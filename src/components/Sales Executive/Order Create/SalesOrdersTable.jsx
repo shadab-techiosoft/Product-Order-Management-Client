@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import MobileOrderCard from "./MobileOrderCard";
+import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify"; // Import toast notifications
 import "react-toastify/dist/ReactToastify.css"; // Import toast CSS
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import EditOrderModal from "./EditOrderModal";
 import ForClientOrderModal from "./ForClientOrderModal";
 import Pagination from "./Pagination";
@@ -78,7 +79,7 @@ const SalesOrdersTable = () => {
         return "bg-gray-200 text-gray-800";
     }
   };
-  
+
   const toggleItemRow = (orderId) => {
     setExpandedItems((prevState) => ({
       ...prevState,
@@ -167,7 +168,7 @@ const SalesOrdersTable = () => {
   // Filter orders by search query
   const filteredOrders = filteredByTab.filter((order) => {
     const queryLower = searchQuery.toLowerCase();
-  
+
     return (
       (order._id?.toLowerCase().includes(queryLower)) ||
       (order.status?.toLowerCase().includes(queryLower)) ||
@@ -178,7 +179,7 @@ const SalesOrdersTable = () => {
       ))
     );
   });
-  
+
 
   // Sorting orders by status: Pending, Reject, Accept
   const sortedOrders = filteredOrders.sort((a, b) => {
@@ -197,7 +198,7 @@ const SalesOrdersTable = () => {
     accept: orders.filter((order) => order.status?.toLowerCase() === "accept").length,
     reject: orders.filter((order) => order.status?.toLowerCase() === "reject").length,
   };
-  
+
   // Pagination Logic
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
@@ -217,85 +218,97 @@ const SalesOrdersTable = () => {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <ToastContainer />
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between mb-8 py-2">
         <h2 className="text-2xl font-semibold">Orders</h2>
+        <SearchBar onSearch={(query) => setSearchQuery(query)} />
         <button
           onClick={openModal}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-indigo-500 flex items-center gap-2 text-white px-4 py-2 rounded-xl hover:bg-indigo-400"
         >
-          Create Order
+          <FaPlus />  Create Order
         </button>
         <ForClientOrderModal isOpen={isModalOpen} closeModal={closeModal} />
       </div>
 
       {/* Tab navigation */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-        {" "}
-        {/* Flex column on small screens, row on larger screens */}
-        <div className="flex space-x-4 mb-4 sm:mb-0">
-          {" "}
-          {/* Margin at bottom for mobile, removed on larger screens */}
-          <button
-            className={`py-2 px-4 rounded ${
-              selectedTab === "all"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-800"
-            }`}
-            onClick={() => setSelectedTab("all")}
-          >
-            All
-            <span className="ml-2 text-xs bg-blue-200 text-blue-800 rounded-full px-2">
-              {orderCounts.all}
-            </span>
-          </button>
-          <button
-            className={`py-2 px-4 rounded ${
-              selectedTab === "pending"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-800"
-            }`}
-            onClick={() => setSelectedTab("pending")}
-          >
-            Pending
-            <span className="ml-2 text-xs bg-yellow-200 text-yellow-800 rounded-full px-2">
-              {orderCounts.pending}
-            </span>
-          </button>
-          <button
-            className={`py-2 px-4 rounded ${
-              selectedTab === "accept"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-800"
-            }`}
-            onClick={() => setSelectedTab("accept")}
-          >
-            Completed
-            <span className="ml-2 text-xs bg-green-200 text-green-800 rounded-full px-2">
-              {orderCounts.accept}
-            </span>
-          </button>
-          <button
-            className={`py-2 px-4 rounded ${
-              selectedTab === "reject"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-800"
-            }`}
-            onClick={() => setSelectedTab("reject")}
-          >
-            Reject
-            <span className="ml-2 text-xs bg-red-200 text-red-800 rounded-full px-2">
-              {orderCounts.reject}
-            </span>
-          </button>
-        </div>
-        {/* Search bar placed on the right side on larger screens */}
-        <SearchBar onSearch={(query) => setSearchQuery(query)} />
-      </div>
 
-      <div className="overflow-x-auto">
+      {" "}
+
+
+      <div className="flex justify-start gap-10 border-b border-indigo-200 mb-4">
+        {/* All Tab */}
+        <button
+          className="relative py-2 px-4 text-gray-600 font-bold text-sm sm:text-base focus:outline-none"
+          onClick={() => setSelectedTab("all")}
+        >
+          {selectedTab === "all" && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500"
+              layoutId="underline"
+            />
+          )}
+          All
+          <span className="absolute top-0 right-0 -mt-1 -mr-2 text-xs bg-indigo-100 text-indigo-600 rounded-full px-2">
+            {orderCounts.all}
+          </span>
+        </button>
+
+        {/* Pending Tab */}
+        <button
+          className="relative py-2 px-4 text-gray-600 font-bold text-sm sm:text-base focus:outline-none"
+          onClick={() => setSelectedTab("pending")}
+        >
+          {selectedTab === "pending" && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500"
+              layoutId="underline"
+            />
+          )}
+          Pending
+          <span className="absolute top-0 right-0 -mt-1 -mr-2 text-xs bg-yellow-100 text-yellow-600 rounded-full px-2">
+            {orderCounts.pending}
+          </span>
+        </button>
+
+        {/* Completed Tab */}
+        <button
+          className="relative py-2 px-4 text-gray-600 font-bold text-sm sm:text-base focus:outline-none"
+          onClick={() => setSelectedTab("accept")}
+        >
+          {selectedTab === "accept" && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500"
+              layoutId="underline"
+            />
+          )}
+          Completed
+          <span className="absolute top-0 right-0 -mt-1 -mr-2 text-xs bg-green-100 text-green-600 rounded-full px-2">
+            {orderCounts.accept}
+          </span>
+        </button>
+
+        {/* Reject Tab */}
+        <button
+          className="relative py-2 px-4 text-gray-600 font-bold text-sm sm:text-base focus:outline-none"
+          onClick={() => setSelectedTab("reject")}
+        >
+          {selectedTab === "reject" && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500"
+              layoutId="underline"
+            />
+          )}
+          Reject
+          <span className="absolute top-0 right-0 -mt-1 -mr-2 text-xs bg-red-100 text-red-600 rounded-full px-2">
+            {orderCounts.reject}
+          </span>
+        </button>
+      </div>
+    {/* table  */}
+      <div className="overflow-x-auto bg-indigo-50 p-2.5 rounded-xl">
         <table className="table-auto w-full border-collapse hidden sm:table">
-          <thead>
-            <tr className="text-left bg-gray-100 text-sm text-gray-700">
+          <thead className="">
+            <tr className="text-left  bg-white  text-sm text-gray-700">
               <th className="p-4">#</th>
               <th className="p-4">Category</th>
               <th className="p-4">Product Items</th>
@@ -311,9 +324,8 @@ const SalesOrdersTable = () => {
             {currentOrders.map((order, orderIndex) => (
               <React.Fragment key={order._id}>
                 <tr
-                  className={`border-b ${
-                    orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
-                  }`}
+                  className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
+                    }`}
                 >
                   <td colSpan="7" className="p-4">
                     <div className="flex justify-between">
@@ -385,9 +397,8 @@ const SalesOrdersTable = () => {
 
                 {/* Serial number row */}
                 <tr
-                  className={`border-b ${
-                    orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
-                  }`}
+                  className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
+                    }`}
                 >
                   <td className="p-4">{orderIndex + 1}</td>
                   <td colSpan="6">
@@ -407,9 +418,8 @@ const SalesOrdersTable = () => {
                   order.items.map((item) => (
                     <tr
                       key={item._id}
-                      className={`border-b ${
-                        orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
-                      }`}
+                      className={`border-b ${orderIndex % 2 === 0 ? "bg-white" : "bg-yellow-100"
+                        }`}
                     >
                       <td className="p-4"></td>
                       <td className="p-4">{item.categoryName}</td>

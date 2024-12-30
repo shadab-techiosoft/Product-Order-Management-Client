@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaBars, FaUserCircle } from "react-icons/fa";
+import {  MdInbox, MdPhoneAndroid, MdLogout } from 'react-icons/md';
 import { API_BASE_URL } from "../../config";
 // Helper function to fetch user details
 const fetchUserDetails = async (token) => {
@@ -38,7 +40,7 @@ const Navbar = ({ toggleSidebar }) => {
     if (token) {
       fetchUserDetails(token)
         .then((data) => {
-          console.log("User Data Fetched:", data);  // Log the fetched data
+          // console.log("User Data Fetched:", data);  
           setUserData(data);  // Update user data state
         })
         .catch((error) => {
@@ -52,67 +54,90 @@ const Navbar = ({ toggleSidebar }) => {
     console.log("Profile Modal State Toggled:", !isProfileOpen);  // Log the new state value
     setIsProfileOpen(!isProfileOpen);
   };
-
+  const truncateEmail = (email, maxLength) => {
+    return email.length > maxLength ? `${email.slice(0, maxLength)}...` : email;
+  };
   return (
     <div>
-      <nav className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-lg rounded-lg">
+      <nav className="flex items-center justify-between p-4 bg-white  text-indigo-500 shadow-lg rounded-lg">
         {/* Left Section: Hamburger Menu for Sidebar */}
         <button
-          className="p-2 rounded-md text-white hover:bg-indigo-700 transition-colors duration-300"
+          className="p-2 rounded-md text-white bg-indigo-500 hover:bg-indigo-200 hover:text-indigo-500  transition-colors duration-300"
           onClick={toggleSidebar}
         >
-          <FaBars className="text-2xl" />
+          <FaBars className="text-2xl  " />
         </button>
 
         {/* Center Section: App Title or Logo */}
-        <div className="text-2xl font-bold tracking-wide text-white">
-          <span className="text-indigo-100">SMART </span>
-          <span className="text-pink-100">ITBOX</span>
+        
+        {/* Search Bar Section */}
+        <div className="flex-grow mx-4">
+          <input
+            type="text"
+            placeholder="Search..."
+            className="max-w-4xl p-2 rounded-full text-indigo-500 placeholder:text-indigo-500 border-indigo-500 border-2 focus:outline-none  focus:ring-indigo-500"
+          />
         </div>
 
         {/* Right Section: Profile Section with Hover Effects */}
         <div onClick={toggleProfileModal} className="relative flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <FaUserCircle
-              className="text-3xl hover:text-indigo-200 cursor-pointer transition-all duration-300"
-               // Toggle profile modal on click
+              className="text-3xl hover:text-indigo-400 cursor-pointer transition-all duration-300"
             />
-            <span className="hidden sm:block text-lg hover:text-indigo-200 cursor-pointer transition-all duration-300">
-              Profile
-            </span>
+            <div className="hidden sm:block">
+              <span className="text-lg hover:text-indigo-400 cursor-pointer transition-all duration-300">
+                {userData?.name || 'Profile'}
+              </span>
+              {userData?.role && (
+                <p className="text-sm">{userData.role}</p>
+              )}
+            </div>
           </div>
 
-          {/* Profile Modal */}
-          {isProfileOpen && userData && (
-            <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-4 z-50">
-              <h2 className="text-xl font-semibold mb-4">User Profile</h2>
-              <div className="mb-4">
-                <strong className="text-black">Name:</strong>
-                <p className="text-black">{userData.name}</p>
-              </div>
-              <div className="mb-4">
-                <strong className="text-black">Email:</strong>
-                <p className="text-black">{userData.email}</p>
-              </div>
-              <div className="mb-4">
-                <strong className="text-black">Phone:</strong>
-                <p className="text-black">{userData.mobileNo}</p>
-              </div>
-              <div className="mb-4">
-                <strong className="text-black">Role:</strong>
-                <p className="text-black">{userData.role}</p>
-              </div>
-              <div className="flex justify-end mt-4">
-                <button
-                  className="px-4 py-2 bg-red-500 text-white rounded"
-                  onClick={toggleProfileModal} // Close modal
+          <AnimatePresence>
+        {isProfileOpen && userData && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-full right-0 mt-2 w-64 bg-white border-indigo-500 border-2 shadow-lg rounded-lg z-50"
+          >
+            {/* User Header */}
+
+            {/* Dropdown Items */}
+            <div className="p-4 text-black">
+              <ul className="space-y-4">
+                {/* Mobile Number */}
+                <li className="flex items-center space-x-2 cursor-pointer hover:text-blue-600 transition-all duration-300">
+                  <MdPhoneAndroid className="text-xl" />
+                  <span>{userData.mobileNo}</span>
+                </li>
+                {/* email  */}
+                <li
+                  className="flex items-center space-x-2 cursor-pointer hover:text-blue-600 transition-all duration-300"
+                  title={userData.email}
                 >
-                  Close
-                </button>
-              </div>
+                  <MdInbox className="text-xl" />
+                  <span>{truncateEmail(userData.email, 14)}</span>
+                </li>
+
+                {/* Sign Out */}
+                <hr className="border-t border-indigo-500 my-2" />
+                <li className="flex items-center justify-center space-x-2 cursor-pointer hover:text-red-600 transition-all duration-300">
+                  <MdLogout className="text-xl" />
+                  <span>Sign Out</span>
+                </li>
+              </ul>
             </div>
-          )}
+          </motion.div>
+        )}
+      </AnimatePresence>
         </div>
+   
+
+    
       </nav>
     </div>
   );

@@ -22,7 +22,8 @@ import WarehouseInventoryTable from './components/Admin/Warehouse/WarehouseInven
 
 function App() {
   return (
-    <div className="App">
+    <div className="App bg-indigo-50
+">
       <Router>
         {/* Define routes for different pages */}
         <Routes>
