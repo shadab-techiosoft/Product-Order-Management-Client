@@ -5,6 +5,8 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
   const [items, setItems] = useState(order.items || []);
   const [gst, setGst] = useState(order.gst || 0); // Add state for GST
   const [warehouses, setWarehouses] = useState([]); // State to store warehouses based on item name and code
+  const [selectedWarehouse, setSelectedWarehouse] = useState(null); // Track selected warehouse for each item
+  const [selectedInwardReference, setSelectedInwardReference] = useState(null); // Track selected inward reference for each item
 
   // Fetch warehouse data based on item details
   useEffect(() => {
@@ -31,12 +33,18 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
     setItems(newItems);
   };
 
-  // Function to handle warehouse name change for a specific item
-  const handleWarehouseChange = (index, value) => {
-    const newItems = [...items];
-    newItems[index].wareHouseName = value; // Update the warehouse name
-    setItems(newItems);
-  };
+// Function to handle warehouse and inward reference change for a specific item
+const handleWarehouseChange = (index, warehouseId, inwardReference, inwardShipmentMark) => {
+  const newItems = [...items];
+  newItems[index].wareHouseName = warehouseId; // Update the warehouse name
+  newItems[index].inwardReference = inwardReference; // Store inward reference
+  newItems[index].inwardShipmentMark = inwardShipmentMark; // Store inwardShipmentMark
+  setItems(newItems);
+
+  setSelectedWarehouse(warehouseId); // Track the selected warehouse
+  setSelectedInwardReference(inwardReference); // Track the inward reference
+};
+
 
   // Function to handle GST change
   const handleGstChange = (e) => {
@@ -78,9 +86,11 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
             itemCode: item.itemCode,
             qty: item.qty,
             price: item.price,
-            wareHouseName: item.wareHouseName // Include warehouse name in the request
+            wareHouseName: item.wareHouseName, // Include warehouse name in the request
+            inwardReference: item.inwardReference || '', // Ensure inwardReference is included
+            inwardShipmentMark: item.inwardShipmentMark || '',
           })),
-          gst: gst // Include GST in the request
+          gst: gst, // Include GST in the request
         }),
       });
 
@@ -98,17 +108,30 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
 
   // Function to get available warehouses for an item
   const getAvailableWarehouses = (item) => {
-    return warehouses.filter((warehouse) => {
-      const warehouseItem = warehouse.items.find(
+    // Filter warehouses where the item exists
+    return warehouses.reduce((availableWarehouses, warehouse) => {
+      // Find all items in this warehouse with the same itemCode as the current item
+      const warehouseItems = warehouse.items.filter(
         (warehouseItem) => warehouseItem.itemCode === item.itemCode
       );
-      return warehouseItem && warehouseItem.quantity > 0;
-    });
+      
+      // Add each warehouse item (with inward reference and inward shipment mark) to the list
+      warehouseItems.forEach((warehouseItem) => {
+        availableWarehouses.push({
+          warehouseId: warehouse._id,
+          inwardReference: warehouseItem.inwardReference,
+          inwardShipmentMark: warehouseItem.inwardShipmentMark,
+          quantity: warehouseItem.quantity,
+        });
+      });
+  
+      return availableWarehouses;
+    }, []);
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-gray-800 bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-6xl w-full">
+      <div className="bg-white rounded-lg shadow-xl p-6 max-w-7xl w-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-gray-800">Edit Order</h2>
           <button 
@@ -128,7 +151,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Category Name</label>
                 <input
-                readOnly
+                  readOnly
                   type="text"
                   value={item.categoryName}
                   onChange={(e) => handleItemChange(index, 'categoryName', e.target.value)}
@@ -139,7 +162,7 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Item Name</label>
                 <input
-                readOnly
+                  readOnly
                   type="text"
                   value={item.itemName}
                   onChange={(e) => handleItemChange(index, 'itemName', e.target.value)}
@@ -147,13 +170,11 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
                 />
               </div>
 
-              
-
               {/* Item Code Input */}
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Item Code</label>
                 <input
-                readOnly
+                  readOnly
                   type="text"
                   value={item.itemCode}
                   onChange={(e) => handleItemChange(index, 'itemCode', e.target.value)}
@@ -187,34 +208,45 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-600">Warehouse Name</label>
                 <select
-                  value={item.wareHouseName}
-                  onChange={(e) => handleWarehouseChange(index, e.target.value)}
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="">Select Warehouse</option>
-                  {getAvailableWarehouses(item).map((warehouse) => {
-                    const warehouseItem = warehouse.items.find(i => i.itemCode === item.itemCode);
-                    const isOutOfStock = warehouseItem.quantity < item.qty; // Check if the warehouse has enough stock
+  value={item.wareHouseName}
+  onChange={(e) => handleWarehouseChange(index, e.target.value, e.target.selectedOptions[0].dataset.inwardReference, e.target.selectedOptions[0].dataset.inwardShipmentMark)}
+  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+>
+  <option value="">Select Warehouse</option>
+  {getAvailableWarehouses(item).map((warehouse, idx) => {
+    const isOutOfStock = warehouse.quantity < item.qty; // Check if warehouse is out of stock
 
-                    return (
-                      <option 
-                        key={warehouse._id} 
-                        value={warehouse._id} 
-                        disabled={isOutOfStock} // Disable if out of stock
-                      >
-                        {warehouse._id} - {isOutOfStock ? 'Out of Stock' : `In Stock`} 
-                        ({warehouseItem.quantity}) {/* Always show the warehouse stock quantity */}
-                      </option>
-                    );
-                  })}
-                </select>
+    return (
+      <option
+        key={idx}
+        value={warehouse.warehouseId}
+        data-inward-reference={warehouse.inwardReference} // Add inward reference as data attribute
+        data-inward-shipment-mark={warehouse.inwardShipmentMark}
+        disabled={isOutOfStock} // Disable out of stock options
+        className={isOutOfStock ? 'text-red-600 bg-red-100' : ''} // Add class to highlight out of stock
+      >
+        {warehouse.warehouseId} - {isOutOfStock ? 'Out of Stock' : 'In Stock'} ({warehouse.quantity}) - Ref: {warehouse.inwardReference}
+      </option>
+    );
+  })}
+</select>
+
               </div>
+
+              {/* Show Quantity and Inward Reference when a warehouse is selected */}
+              {selectedWarehouse && (
+                <div className="flex-1 mt-2">
+                  {/* <div className="text-sm font-medium text-gray-600">Quantity Available: {item.qty}</div> */}
+                  <div className="text-sm font-medium text-gray-600">Inward Reference: {selectedInwardReference}</div>
+                  <div className="text-sm font-medium text-gray-600">Inward Shipment: {item.inwardShipmentMark}</div>
+                </div>
+              )}
             </div>
           ))}
         </div>
 
         {/* GST Input */}
-        <div className="mt-4">
+        <div className="mb-4">
           <label className="block text-sm font-medium text-gray-600">GST (%)</label>
           <input
             type="number"
@@ -224,16 +256,24 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
           />
         </div>
 
-        {/* Total Amount */}
-        <div className="mt-4 text-right">
-          <p>Total Amount Before GST: ₹{totalItemAmountBeforeGST}</p>
-          <p>GST Amount: ₹{gstAmount}</p>
-          <p className="font-semibold">Total Amount With GST: ₹{totalAmountWithGST}</p>
+        {/* Total Amount Calculation */}
+        <div className="flex justify-between mb-4">
+          <div className="text-lg font-semibold">Total Amount Before GST: ₹{totalItemAmountBeforeGST}</div>
+          <div className="text-lg font-semibold">GST: ₹{gstAmount}</div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-4">
-          <button onClick={closeModal} className="px-4 py-2 bg-gray-500 text-white rounded-lg">Cancel</button>
-          <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Update Order</button>
+        <div className="flex justify-between mb-4">
+          <div className="text-lg font-semibold">Total Amount With GST: ₹{totalAmountWithGST}</div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={handleSubmit}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          >
+            Update Order
+          </button>
         </div>
       </div>
     </div>
@@ -241,6 +281,10 @@ const EditOrderModal = ({ order, closeModal, onOrderUpdated }) => {
 };
 
 export default EditOrderModal;
+
+
+
+
 
 
 

@@ -8,9 +8,11 @@ const AddInventoryModal = ({ onClose, onAddInventory }) => {
       itemCode: "",
       itemName: "",
       itemCategory: "",
-      quantity: "",
+      openingStock: "",
       warehouseName: "",
       itemImage: "",
+      inwardReference: "",
+      inwardShipmentMark: "",
     },
   ]);
   const [warehouses, setWarehouses] = useState([]);
@@ -168,9 +170,11 @@ const AddInventoryModal = ({ onClose, onAddInventory }) => {
         itemCode: "",
         itemName: "",
         itemCategory: "",
-        quantity: "",
+        openingStock: "",
         warehouseName: "",
         itemImage: "",
+        inwardShipmentMark: "",
+        inwardReference: "",
       },
     ]);
   };
@@ -181,7 +185,7 @@ const AddInventoryModal = ({ onClose, onAddInventory }) => {
       itemCode: item.itemCode,
       itemName: item.itemName,
       itemCategory: item.itemCategory,
-      quantity: item.quantity || "", // Default to empty if no quantity is provided
+      openingStock: item.openingStock || "", // Default to empty if no quantity is provided
       warehouseName: item.warehouseName.toLowerCase(),
       itemImage: item.itemImage,
     }));
@@ -196,7 +200,7 @@ const AddInventoryModal = ({ onClose, onAddInventory }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Loop through each inventory item in the formData array */}
           {formData.map((inventory, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-4">
+            <div key={index} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-4 mb-4">
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-700 mb-1">Warehouse Name</label>
                 <select
@@ -266,11 +270,33 @@ const AddInventoryModal = ({ onClose, onAddInventory }) => {
               </div>
 
               <div className="flex flex-col">
-                <label className="text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                <label className="text-sm font-medium text-gray-700 mb-1">Openig Stock</label>
                 <input
                   type="number"
-                  name="quantity"
-                  value={inventory.quantity}
+                  name="openingStock"
+                  value={inventory.openingStock}
+                  onChange={(e) => handleChange(index, e)}
+                  required
+                  className="p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-1">Inward refrence</label>
+                <input
+                  type="text"
+                  name="inwardReference"
+                  value={inventory.inwardReference}
+                  onChange={(e) => handleChange(index, e)}
+                  required
+                  className="p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-1">Shipment Mark</label>
+                <input
+                  type="text"
+                  name="inwardShipmentMark"
+                  value={inventory.inwardShipmentMark}
                   onChange={(e) => handleChange(index, e)}
                   required
                   className="p-2 border border-gray-300 rounded-md"

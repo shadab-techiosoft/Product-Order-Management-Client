@@ -22,6 +22,12 @@ const WarehouseInventoryTable = () => {
   const [warehouseToEdit, setWarehouseToEdit] = useState(null);
   const [itemToEdit, setItemToEdit] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isWarehouseTableVisible, setIsWarehouseTableVisible] = useState(true);
+
+  const toggleWarehouseTableVisibility = () => {
+    setIsWarehouseTableVisible((prev) => !prev);
+  };
+
   useEffect(() => {
     fetchItems();
     fetchWarehouses();
@@ -223,7 +229,7 @@ const WarehouseInventoryTable = () => {
   
 
   return (
-    <div className="flex flex-col sm:flex-row sm:space-x-4">
+    <div className="flex flex-col space-y-4">
       {/* Left side: Inventory Table */}
       <div className="flex-1 overflow-x-auto bg-white rounded-lg shadow-lg p-4">
         {/* Search Bar */}
@@ -270,6 +276,7 @@ const WarehouseInventoryTable = () => {
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Warehouse Name
                   </th>
+                  
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Category
                   </th>
@@ -278,6 +285,27 @@ const WarehouseInventoryTable = () => {
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Item Name
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Warehouse Item Batch
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Opening Stock
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Inward Stock
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Transfer In
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Transfer Out
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sales Return
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sales Out
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total Quantity
@@ -291,10 +319,18 @@ const WarehouseInventoryTable = () => {
                 {currentItems.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 border-b border-gray-200">
                     {item.warehouseName ? item.warehouseName.charAt(0).toUpperCase() + item.warehouseName.slice(1).toLowerCase() : "No Warehouse"}
+                    
                     <td className="px-4 py-2 text-sm">{item.itemCategory}</td>
                     <td className="px-4 py-2 text-sm">{item.itemCode}</td>
                     <td className="px-4 py-2 text-sm">{item.itemName}</td>
-                    <td className="px-4 py-2 text-sm">{item.quantity}</td>
+                    <td className="px-4 py-2 text-sm">{item.inwardReference}</td>
+                    <td className="px-4 py-2 text-sm">{item.openingStock}</td>
+                    <td className="px-4 py-2 text-sm">{item.inwardStock}</td>
+                    <td className="px-4 py-2 text-sm">{item.transferIn}</td>
+                    <td className="px-4 py-2 text-sm">{item.transferOut}</td>
+                    <td className="px-4 py-2 text-sm">{item.salesReturn}</td>
+                    <td className="px-4 py-2 text-sm">{item.salesOut}</td>
+                    <td className="px-4 py-2 text-sm">{item.inHandStockQuantity}</td>
                     <td className="px-4 py-2 text-sm flex space-x-2">
                     <button onClick={() => handleEditInventory(item)} className="text-blue-500 hover:text-blue-700">
                       <HiOutlinePencil />
@@ -338,8 +374,9 @@ const WarehouseInventoryTable = () => {
       </div>
   
       {/* Right side: Warehouse Details Table */}
-      <div className="w-full sm:w-1/3 overflow-x-auto bg-white rounded-lg shadow-lg p-4 mt-4 sm:mt-0">
+      <div className="overflow-x-auto bg-white rounded-lg shadow-lg p-4">
         <h3 className="text-lg font-semibold mb-4">Warehouse Details</h3>
+        
         {warehouseLoading ? (
           <p>Loading warehouses...</p>
         ) : (
