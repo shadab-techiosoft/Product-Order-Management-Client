@@ -314,7 +314,7 @@ const SalesOrdersTable = () => {
               <th className="p-4">Product Items</th>
 
               <th className="p-4">Quantity</th>
-              <th className="p-4">Warehouse Name</th>
+              <th className="p-4">Warehouse Names</th>
               <th className="p-4">Price</th>
               <th className="p-4">Total Amount</th>
               {/* <th className="p-4">Action</th> */}
