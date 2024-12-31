@@ -150,7 +150,7 @@ function Login() {
             <input
               className="text-sm w-full px-4 py-4 border border-solid border-gray-300 rounded transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 text-indigo-500"
               type="password"
-              placeholder="Password"
+              placeholder=" Enter Password"
               value={pswd}
               onChange={(e) => setPswd(e.target.value)}
             />
